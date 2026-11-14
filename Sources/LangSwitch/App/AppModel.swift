@@ -300,6 +300,25 @@ final class AppModel {
                 original: sample.0, corrected: sample.1, kinds: sample.2, application: sample.3,
                 date: Date().addingTimeInterval(Double(-index * 90)), isUndo: false)
         }
+        var demo = LearningData()
+        for word in ["Zoltra", "FigJam", "дизайн-ревью"] { demo.addWord(word) }
+        let today = LearningData.today
+        // Watched words at different distances from the dictionary; one already adopted on its own.
+        let sightings: [(word: String, perDay: [Int], doubtful: Bool)] = [
+            ("могну", [1, 2], true), ("оки-доки", [3], false), ("bk", [4, 1], true),
+            ("созвонимся-ка", [1], false),
+            ("деплойнул", [1, 1], false),
+        ]
+        for item in sightings {
+            for (offset, count) in item.perDay.enumerated() {
+                for _ in 0..<count {
+                    demo.recordWord(
+                        item.word, previous: nil, known: false, doubtful: item.doubtful,
+                        day: today - item.perDay.count + 1 + offset)
+                }
+            }
+        }
+        learning = demo
         var profile = TrainerProfile()
         for index in 0..<24 {
             let result = TrainerResult(

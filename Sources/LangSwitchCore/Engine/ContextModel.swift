@@ -25,6 +25,8 @@ package struct ContextModel: Sendable {
     private let rowsOffset: Int
     private let entriesOffset: Int
     package let pairCount: Int
+    /// Every pair observation in the corpus.
+    package let grandTotal: Int
 
     /// - Parameter signature: of the frequency list in use; the model is rejected when it was built
     ///   against another one.
@@ -43,6 +45,9 @@ package struct ContextModel: Sendable {
         self.entriesOffset = rowsOffset + (vocabulary + 1) * 4
         guard data.count == entriesOffset + pairs * 4 else { return nil }
         self.data = data
+        var sum = 0
+        for word in 0..<vocabulary { sum += Int(Self.read(data, at: Self.headerSize + word * 4)) }
+        self.grandTotal = sum
     }
 
     private static func read(_ data: Data, at offset: Int) -> UInt32 {

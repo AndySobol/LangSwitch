@@ -16,7 +16,8 @@ package struct CorrectionPolicy: Sendable, Decodable {
         package var rank: Int?
         /// The same through dictionary forms.
         package var lemmaRank: Int?
-        package var seenAfterPrevious = 0
+        /// How strongly the word is tied to the previous one (see `Candidate.association`).
+        package var association: Float = 0
         /// Distance to the next explanation; nil when there is none.
         package var margin: Float?
         package var rivalIsRanked = false
@@ -56,8 +57,8 @@ package struct CorrectionPolicy: Sendable, Decodable {
         case "commonest": return (evidence.rank.map { $0 < 300 } ?? false) ? 1 : 0
         case "everyday": return (evidence.rank.map { $0 < 6000 } ?? false) ? 1 : 0
         case "listed": return (evidence.rank.map { $0 < 30000 } ?? false) ? 1 : 0
-        case "seenAfter": return evidence.seenAfterPrevious > 0 ? 1 : 0
-        case "seenAfterLog": return min(log10(Float(evidence.seenAfterPrevious) + 1) / 3, 1)
+        case "association": return min(evidence.association / 2, 1)
+        case "associated": return evidence.association >= 0.5 ? 1 : 0
         case "margin": return margin
         case "clear": return margin >= 0.15 ? 1 : 0
         case "distinct": return margin >= 0.4 ? 1 : 0

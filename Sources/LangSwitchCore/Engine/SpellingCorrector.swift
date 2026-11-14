@@ -89,6 +89,9 @@ package struct SpellingCorrector {
         /// How often the word follows the previous one in everyday text; 0 when the pair was never seen
         /// or there is nothing to compare with.
         package var followsPrevious = 0
+        /// How strongly the word is tied to the previous one: the decimal logarithm of how many times
+        /// more often than chance it follows it, from 0 (no tie, or never seen) to 3.
+        package var association: Float = 0
         /// For a replacement of two words: how often they stand next to each other.
         package var innerPair = 0
 
@@ -411,6 +414,9 @@ package struct SpellingCorrector {
             let parts = found[index].word.lowercased().components(separatedBy: " ")
             if let previous, let first = parts.first {
                 found[index].followsPrevious = vocabulary.pairCount(previous, first, language: language) ?? 0
+                if let lift = vocabulary.association(previous, first, language: language) {
+                    found[index].association = min(max(log10(lift), 0), 3)
+                }
             }
             if parts.count == 2, let pair = vocabulary.pairCount(parts[0], parts[1], language: language) {
                 found[index].innerPair = pair
@@ -419,7 +425,7 @@ package struct SpellingCorrector {
             }
             // What precedes a split says little: its first half is usually a function word, and those
             // follow anything.
-            if parts.count == 1 { found[index].score -= Self.contextBonus(found[index].followsPrevious) }
+            if parts.count == 1 { found[index].score -= min(0.3 * found[index].association, 0.6) }
         }
         return found.sorted { $0.score == $1.score ? $0.word < $1.word : $0.score < $1.score }
     }
@@ -618,7 +624,7 @@ package struct SpellingCorrector {
         evidence.length = word.count
         evidence.rank = rank(best, through: false)
         evidence.lemmaRank = rank(best, through: true)
-        evidence.seenAfterPrevious = best.followsPrevious
+        evidence.association = best.association
         evidence.margin = rival.map { $0.score - best.score }
         evidence.rivalIsRanked = rival.map { rank($0, through: false) != nil } ?? false
         evidence.firstLetterChanged = target.first != lower.first

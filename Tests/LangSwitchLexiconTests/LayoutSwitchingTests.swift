@@ -31,6 +31,35 @@ import Testing
         #expect(typed == "Я работаю в Figma уже 12 лет ")
     }
 
+    /// Short technical words typed without leaving the Russian layout, in the middle of Russian text.
+    @Test func shortTermsInsideRussianTextAreConverted() {
+        let sentence = "Ты можешь сразу выпустить dmg файл и запушить в git "
+        #expect(typeBlind(sentence, active: .russian) == sentence)
+        #expect(
+            typeBlind("Надо обновить css и проверить api ", active: .russian)
+                == "Надо обновить css и проверить api ")
+    }
+
+    /// Two letters are enough when they spell an everyday word of the other language.
+    @Test func shortEverydayWordsAreConvertedInsideOtherText() {
+        #expect(typeBlind("Надо составить to do список ", active: .russian) == "Надо составить to do список ")
+        #expect(typeBlind("I think не надо ", active: .abc) == "I think не надо ")
+    }
+
+    /// Short Russian abbreviations and slang stay Russian: their keys do not spell an everyday English
+    /// word or a known term of three letters, or the Russian word is common enough itself («ща» / "of").
+    @Test(arguments: ["мск", "спс", "ки", "вк", "ща", "кек", "че"])
+    func shortRussianTokensStay(word: String) {
+        for lead in ["привет мир как дела ", ""] {
+            let result = withRuntime { runtime -> String in
+                var simulator = TypingSimulator(engine: runtime.engine, active: .russian)
+                simulator.type(lead + word + " ")
+                return simulator.document
+            }
+            #expect(!result.contains(where: { Language.english.isLetter($0) }), "\(result)")
+        }
+    }
+
     @Test func englishTypedOnRussianLayout() {
         #expect(typeBlind("hello world ", active: .russian) == "hello world ")
         #expect(typeBlind("please check the design ", active: .russian) == "please check the design ")

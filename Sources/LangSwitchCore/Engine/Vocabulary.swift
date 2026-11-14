@@ -96,6 +96,7 @@ package struct FrequencyList: Sendable {
     package let coreCount: Int
     private let ranks: [String: Int]
     private let sorted: [String]
+    private let sortedCore: [String]
 
     /// - Parameter extended: words beyond the core, ordered by how often they occur in a large corpus.
     package init(words: [String] = [], extended: [String] = []) {
@@ -111,6 +112,7 @@ package struct FrequencyList: Sendable {
         self.coreCount = words.count
         self.ranks = ranks
         self.sorted = all.sorted()
+        self.sortedCore = words.sorted()
     }
 
     package var core: ArraySlice<String> { words.prefix(coreCount) }
@@ -127,6 +129,11 @@ package struct FrequencyList: Sendable {
             hash = hash &* 0x0000_0100_0000_01B3
         }
         return hash
+    }
+
+    /// True when some word of the curated core starts with `prefix` (lower case).
+    package func hasCoreWord(withPrefix prefix: String) -> Bool {
+        SortedPrefixSearch.contains(prefix: prefix, in: sortedCore)
     }
 
     /// True when some listed word starts with `prefix` (lower case).
@@ -214,6 +221,22 @@ package final class Vocabulary {
             let first = list.rank(of: Self.folded(previous)), let second = list.rank(of: Self.folded(word))
         else { return nil }
         return model.count(first, second)
+    }
+
+    /// How much more often `word` follows `previous` than chance would have it: 1 means no connection,
+    /// 10 a pair seen ten times more often than the frequencies of the two words explain. Nil when the
+    /// pair was never seen. Frequent words follow anything («дела в»), so the bare count says little;
+    /// this ratio is what makes a pair evidence.
+    package func association(_ previous: String, _ word: String, language: Language) -> Float? {
+        guard let model = context[language], let list = frequency[language],
+            let first = list.rank(of: Self.folded(previous)), let second = list.rank(of: Self.folded(word))
+        else { return nil }
+        let pair = model.count(first, second)
+        guard pair > 0, model.grandTotal > 0 else { return nil }
+        let expected =
+            Float(model.total(after: first)) * Float(max(model.total(after: second), 1))
+            / Float(model.grandTotal)
+        return Float(pair) / max(expected, 0.01)
     }
 
     /// How many pairs in the corpus begin with `previous`; 0 when it is unknown to the model.

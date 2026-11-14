@@ -394,13 +394,87 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
 }
 
 @Suite struct LearningTests {
-    @Test func repeatedUnknownWordIsPromoted() {
+    @Test func wordThatComesBackOnAnotherDayIsAdopted() {
         var learning = LearningData()
-        check(learning.recordWord("Zoltra", previous: nil, known: false), nil)
-        check(learning.recordWord("Zoltra", previous: nil, known: false), nil)
-        check(learning.recordWord("Zoltra", previous: nil, known: false), "Zoltra")
+        check(learning.recordWord("Zoltra", previous: nil, known: false, day: 100), nil)
+        #expect(learning.watched.map(\.spelling) == ["Zoltra"])
+        check(learning.recordWord("Zoltra", previous: nil, known: false, day: 101), "Zoltra")
         #expect(learning.vocabulary.knows("zoltra") == "Zoltra")
         #expect(learning.autoLearned.contains("Zoltra"))
+        #expect(learning.watched.isEmpty)
+    }
+
+    @Test func aBurstOnOneDayHasToBeLonger() {
+        // The same unknown string four times in a row is as likely a typo being fought with.
+        var learning = LearningData()
+        for _ in 0..<4 { check(learning.recordWord("могну", previous: nil, known: false, day: 100), nil) }
+        check(learning.recordWord("могну", previous: nil, known: false, day: 100), "могну")
+    }
+
+    @Test func doubtfulWordHasToProveMore() {
+        // A word that looks like a slip of a known one: two days are not enough, three are.
+        var learning = LearningData()
+        for day in 100...101 {
+            check(learning.recordWord("могну", previous: nil, known: false, doubtful: true, day: day), nil)
+        }
+        #expect(learning.watched.first?.isDoubtful == true)
+        check(learning.recordWord("могну", previous: nil, known: false, doubtful: true, day: 102), "могну")
+    }
+
+    @Test func twoLetterWordIsAlwaysDoubtful() {
+        var learning = LearningData()
+        for _ in 0..<9 { check(learning.recordWord("bk", previous: nil, known: false, day: 100), nil) }
+        check(learning.recordWord("bk", previous: nil, known: false, day: 101), "bk")
+        // Too short to drive completions.
+        #expect(learning.wordCounts["bk"] == nil)
+    }
+
+    @Test func removedWordIsNotLearnedAgain() {
+        var learning = LearningData()
+        _ = learning.recordWord("оки-доки", previous: nil, known: false, day: 100)
+        check(learning.recordWord("оки-доки", previous: nil, known: false, day: 101), "оки-доки")
+        learning.removeWord("оки-доки")
+        #expect(learning.vocabulary.words.isEmpty)
+        #expect(learning.declined == ["оки-доки"])
+        for day in 102...110 {
+            check(learning.recordWord("оки-доки", previous: nil, known: false, day: day), nil)
+        }
+        #expect(learning.watched.isEmpty)
+        // Adding it by hand lifts the ban.
+        learning.addWord("оки-доки")
+        #expect(learning.declined.isEmpty)
+        #expect(learning.vocabulary.knows("оки-доки") != nil)
+    }
+
+    @Test func watchedWordCanBeAdoptedOrDeclinedByHand() {
+        var learning = LearningData()
+        _ = learning.recordWord("Zoltra", previous: nil, known: false, day: 100)
+        _ = learning.recordWord("кринжово", previous: nil, known: false, day: 100)
+        learning.adopt("zoltra")
+        #expect(learning.vocabulary.words == ["Zoltra"])
+        // Chosen by the user, not picked up by the application.
+        #expect(learning.autoLearned.isEmpty)
+        learning.decline("кринжово")
+        #expect(learning.watched.isEmpty)
+        #expect(learning.declined == ["кринжово"])
+    }
+
+    @Test func staleObservationsAreForgotten() {
+        var learning = LearningData()
+        _ = learning.recordWord("Zoltra", previous: nil, known: false, day: 100)
+        learning.forgetStaleObservations(day: 130)
+        #expect(learning.watched.count == 1)
+        learning.forgetStaleObservations(day: 200)
+        #expect(learning.watched.isEmpty)
+    }
+
+    @Test func countsOfEarlierBuildsBecomeObservations() throws {
+        let old = #"{"unknownCounts": {"zoltra": 2}}"#
+        let learning = try JSONDecoder().decode(LearningData.self, from: Data(old.utf8))
+        #expect(learning.watched.first?.spelling == "zoltra")
+        #expect(learning.watched.first?.count == 2)
+        let again = try JSONDecoder().decode(LearningData.self, from: JSONEncoder().encode(learning))
+        #expect(again == learning)
     }
 
     @Test func twoUndosBecomeARule() {
@@ -429,7 +503,8 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
     }
 
     @Test func digitsAndFragmentsAreNotLearned() {
-        #expect(!LearningData.isLearnable("ab"))
+        #expect(!LearningData.isLearnable("a"))
+        #expect(LearningData.isLearnable("bk"))
         #expect(!LearningData.isLearnable("pass123"))
         #expect(!LearningData.isLearnable("-word"))
         #expect(LearningData.isLearnable("кто-то"))

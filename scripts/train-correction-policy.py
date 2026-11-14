@@ -4,7 +4,7 @@
 The spelling model proposes a replacement for an unknown word; this policy decides whether the
 proposal is safe to apply without asking. It is a set of small logistic models, one per family of
 slips with an offset for every kind of slip, over features of the proposal (how common the word is,
-whether it was seen after the previous word, how far the next explanation is, ...). Nothing here looks at particular words.
+how strongly it is tied to the previous word, how far the next explanation is, ...). Nothing here looks at particular words.
 
     LANGSWITCH_ANALYSIS=analysis.tsv swift test -c release -Xswiftc -enable-testing --filter corpusAnalysis
     python3 scripts/train-correction-policy.py analysis.tsv [--write]
@@ -16,13 +16,12 @@ import collections, json, math, sys, zlib
 from pathlib import Path
 
 FAMILIES = {
-    "slip": ["swappedLetters", "droppedLetter", "doubledLetter"],
+    "slip": ["swappedLetters", "droppedLetter", "doubledLetter", "twoSlips"],
     "stray": ["strayLetter", "neighbouringKey"],
     "split": ["missingSpace"],
     "joiner": ["missingHyphen", "strayHyphen", "missingApostrophe"],
     "spelling": ["droppedDoubleLetter", "confusedVowel", "confusedConsonant", "softSign", "ruleSpelling",
                  "silentLetter", "misplacedDouble"],
-    "double": ["twoSlips"],
 }
 FAMILY_OF = {edit: family for family, edits in FAMILIES.items() for edit in edits}
 PROCLITICS = {
@@ -35,12 +34,12 @@ WEIGHTS = {"typo": 1.0, "mistake": 1.0, "slip": 1.5, "frequent": 0.5, "clean": 2
 MISTYPED = ("typo", "mistake", "slip", "frequent")
 # What counts for a proposal can never count against it, and the other way round: the corpora differ
 # in more than the typing they hold, and an unconstrained fit would pick those differences up.
-SUPPORTS = {"rank", "commonest", "everyday", "listed", "seenAfter", "seenAfterLog", "margin", "clear", "distinct",
+SUPPORTS = {"rank", "commonest", "everyday", "listed", "association", "associated", "margin", "clear", "distinct",
             "unique", "seenTogether", "seenTogetherLog", "glued", "long"}
 OPPOSES = {"unranked", "lemmaOnly", "rivalRanked", "candidates", "score", "firstLetter"}
 FEATURES = [
     "bias", "length2", "length3", "length4", "long", "size", "rank", "unranked", "lemmaOnly", "commonest", "everyday",
-    "listed", "seenAfter", "seenAfterLog", "margin", "clear", "distinct", "unique", "firstLetter", "plausibility",
+    "listed", "association", "associated", "margin", "clear", "distinct", "unique", "firstLetter", "plausibility",
     "rivalRanked", "candidates", "seenTogether", "seenTogetherLog", "glued", "score", "english",
 ]
 
@@ -57,7 +56,7 @@ def load(path):
         for item in filter(None, listed.split("|")):
             text, edit, score, form, lemma, after, together = item.rsplit(":", 6)
             candidates.append(dict(word=text, edit=edit, score=float(score), form=int(form), lemma=int(lemma),
-                                   after=int(after), together=int(together)))
+                                   association=float(after), together=int(together)))
         kind, _, language = corpus.rpartition("-")
         if language not in ("ru", "en"):
             kind, language = corpus, "ru"
@@ -84,8 +83,8 @@ def features(row):
         "commonest": float(0 <= best["form"] < 300),
         "everyday": float(0 <= best["form"] < 6000),
         "listed": float(0 <= best["form"] < 30000),
-        "seenAfter": float(best["after"] > 0),
-        "seenAfterLog": min(math.log10(best["after"] + 1) / 3, 1.0),
+        "association": min(best["association"] / 2, 1.0),
+        "associated": float(best["association"] >= 0.5),
         "margin": margin,
         "clear": float(margin >= 0.15),
         "distinct": float(margin >= 0.4),

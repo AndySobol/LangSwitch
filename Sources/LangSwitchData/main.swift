@@ -17,9 +17,11 @@ struct Settings {
     /// A dictionary word is listed when the corpus has it at least this often per million words.
     let knownPerMillion = 0.13
     /// A word the dictionary lacks must be this frequent to count as a word people really write, and
-    /// must also occur in the second, hand-written corpus: subtitles are full of recognition debris.
-    let unknownPerMillion = 3.0
-    let unknownInSentences = 3
+    /// must also occur in the second, hand-written and proof-read corpus. That is what tells words
+    /// from mistakes: "favourite" and «ща» are in both, «вобщем» and "dont" are frequent in subtitles
+    /// and all but absent from the sentences; recognition debris is absent too.
+    let unknownPerMillion = 2.0
+    let unknownInSentences = 5
     /// One sentence in this many is kept out of the context model and used for measurements.
     let heldOutEvery = 25
     let heldOutSample = 1500
@@ -87,7 +89,6 @@ guard runtime.hasFullDictionaries else {
     FileHandle.standardError.write(Data("the spelling dictionaries are missing\n".utf8))
     exit(1)
 }
-let speller = runtime.engine.speller
 let vocabulary = runtime.vocabulary
 
 for language in Language.allCases {
@@ -138,7 +139,6 @@ for language in Language.allCases {
 
     var extended: [String] = []
     var admitted: [String] = []
-    var rejected: [String] = []
     for (word, count) in counts.sorted(by: { $0.count == $1.count ? $0.word < $1.word : $0.count > $1.count })
     where count >= knownFloor && core.rank(of: word) == nil {
         let known = vocabulary.isKnown(word, language: language)
@@ -152,21 +152,11 @@ for language in Language.allCases {
         // Halves of contractions left by the corpus tokeniser: "didn", "doesn".
         if language == .english, vocabulary.isKnown(word + "'t", language: language) { continue }
         // A frequent string that the model can explain as a spelling mistake is a frequent mistake.
-        let looksLikeAMistake =
-            speller.autoCorrection(for: word, language: language) != nil
-            || speller.candidates(for: word, language: language).contains {
-                $0.edit.family == .orthographic || $0.edit.family == .boundary
-            }
-        if looksLikeAMistake {
-            rejected.append(word)
-        } else {
-            extended.append(word)
-            admitted.append(word)
-        }
+        extended.append(word)
+        admitted.append(word)
     }
     note("\(code): \(extended.count) words added, \(admitted.count) of them unknown to the dictionary")
     note("  admitted: \(admitted.prefix(80).joined(separator: " "))")
-    note("  rejected as mistakes: \(rejected.prefix(80).joined(separator: " "))")
     try (extended.joined(separator: "\n") + "\n").write(
         to: resources.appendingPathComponent("Frequency/\(code)-extended.txt"), atomically: true,
         encoding: .utf8)

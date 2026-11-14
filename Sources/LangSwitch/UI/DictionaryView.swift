@@ -38,8 +38,9 @@ struct DictionaryView: View {
                 if vocabulary.words.isEmpty {
                     Text(
                         loc(
-                            "Слова, которые вы добавите или которые встретятся три раза, появятся здесь и перестанут исправляться.",
-                            "Words you add, or type three times, appear here and stop being corrected.")
+                            "Слова, которые вы добавите сами или которые LangSwitch освоит, наблюдая за вашим набором, появятся здесь и перестанут исправляться.",
+                            "Words you add, or that LangSwitch picks up from your typing, appear here and stop being corrected."
+                        )
                     )
                     .font(.callout)
                     .foregroundStyle(Theme.muted)
@@ -47,7 +48,7 @@ struct DictionaryView: View {
                     ChipFlow(items: vocabulary.words.sorted { $0.lowercased() < $1.lowercased() }) { word in
                         Chip(
                             text: word,
-                            accent: model.learning.autoLearned.contains(word) ? Theme.ink : Theme.ink
+                            accent: model.learning.autoLearned.contains(word) ? Theme.muted : Theme.ink
                         ) {
                             model.updateLearning { $0.removeWord(word) }
                         }
@@ -58,13 +59,15 @@ struct DictionaryView: View {
                         Label(
                             loc("выучено автоматически", "learned automatically"), systemImage: "circle.fill"
                         )
-                        .foregroundStyle(Theme.ink)
+                        .foregroundStyle(Theme.muted)
                     }
                     .font(.caption)
                     .labelStyle(.titleAndIcon)
                 }
             }
             .card()
+
+            watching
 
             HStack(alignment: .top, spacing: 14) {
                 ruleList(
@@ -151,6 +154,79 @@ struct DictionaryView: View {
                 .card()
             }
         }
+    }
+
+    /// Unknown words on their way into the vocabulary, and the ones the user turned down.
+    @ViewBuilder private var watching: some View {
+        let watched = Array(model.learning.watched.prefix(14))
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: loc("Присматриваюсь", "Watching"), symbol: "eye.fill")
+            Text(
+                loc(
+                    "Незнакомые слова, которые вы оставили как набрали. Слово попадает в словарь, когда возвращается: в другой день или несколько раз за один. Похожему на опечатку и очень короткому нужно больше.",
+                    "Unknown words you left as typed. A word joins the dictionary when it comes back: on another day, or several times in one. A word that looks like a typo, or a very short one, needs more."
+                )
+            )
+            .font(.callout)
+            .foregroundStyle(Theme.muted)
+            .fixedSize(horizontal: false, vertical: true)
+            if watched.isEmpty {
+                Text(loc("Пока наблюдать не за чем.", "Nothing to watch yet."))
+                    .font(.callout)
+                    .foregroundStyle(Theme.faint)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(watched, id: \.spelling) { item in watchedRow(item) }
+                }
+            }
+        }
+        .card()
+
+        if !model.learning.declined.isEmpty {
+            ruleList(
+                title: loc("Не запоминать", "Never learn"), symbol: "nosign",
+                empty: "", items: model.learning.declined.sorted()
+            ) { item in
+                model.updateLearning { $0.declined.remove(item) }
+            }
+        }
+    }
+
+    private func watchedRow(_ item: WordObservation) -> some View {
+        let word = item.spelling
+        let times = loc("встреч: \(item.count)", "seen \(item.count)×")
+        let days = loc("дней: \(item.days)", "days: \(item.days)")
+        let doubt = item.isDoubtful ? " · " + loc("нужно больше подтверждений", "needs more evidence") : ""
+        return HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(word).font(.callout.weight(.medium))
+                Text("\(times) · \(days)\(doubt)").font(.caption).foregroundStyle(Theme.faint)
+            }
+            Spacer(minLength: 8)
+            ProgressView(value: item.progress)
+                .progressViewStyle(.linear)
+                .tint(Theme.ink)
+                .frame(width: 96)
+            Button {
+                model.updateLearning { $0.adopt(word) }
+            } label: {
+                Image(systemName: "plus").font(.system(size: 11, weight: .bold))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.ink)
+            .help(loc("Добавить в словарь сейчас", "Add to the dictionary now"))
+            Button {
+                model.updateLearning { $0.decline(word) }
+            } label: {
+                Image(systemName: "xmark").font(.system(size: 11, weight: .bold))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.muted)
+            .help(loc("Это не слово — не запоминать", "Not a word — never learn it"))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private func ruleList(

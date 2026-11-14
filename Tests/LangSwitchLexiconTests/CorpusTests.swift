@@ -370,7 +370,7 @@ enum SentenceCorpus {
                     candidate.word, "\(candidate.edit)", "\(candidate.score)",
                     "\(form.contains(-1) ? -1 : form.max() ?? -1)",
                     "\(lemma.contains(-1) ? -1 : lemma.max() ?? -1)",
-                    "\(candidate.followsPrevious)", "\(candidate.innerPair)",
+                    "\(candidate.association)", "\(candidate.innerPair)",
                 ].joined(separator: ":")
             }.joined(separator: "|")
             let own = runtime.engine.decider.models[language]?.plausibility(of: word) ?? 0
@@ -438,7 +438,9 @@ enum SentenceCorpus {
             let language = Language.dominant(in: word) ?? .english
             let speller = runtime.engine.speller
             let found = speller.candidates(for: word, language: language, after: previous).prefix(6)
-                .map { "\($0.word) \($0.edit) \($0.score) ×\($0.followsPrevious)/\($0.innerPair)" }
+                .map {
+                    "\($0.word) \($0.edit) \($0.score) ×\($0.followsPrevious)/\($0.association)/\($0.innerPair)"
+                }
                 .joined(separator: "; ")
             let auto = speller.autoCorrection(for: word, language: language, after: previous) ?? "—"
             let known = runtime.vocabulary.knowledge(of: word, language: language)

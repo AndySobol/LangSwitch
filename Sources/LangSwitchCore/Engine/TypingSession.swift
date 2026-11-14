@@ -406,11 +406,11 @@ package struct TypingSession {
             let previous = history.last, previous.boundary == .space, !previous.corrected,
             previous.leading.isEmpty,
             previous.layoutAfter == layoutID, let language = result.language,
-            // «I sa Tom» is "I saw Tom" sooner than "Is a Tom": a reading of the word that is seen after
+            // «I sa Tom» is "I saw Tom" sooner than "Is a Tom": a reading of the word that is tied to
             // the previous one leaves the space where it is.
             previousIsStray
                 || (engine.speller.assessment(of: text, language: language, after: previous.finalText)?
-                    .candidate.followsPrevious ?? 0) == 0,
+                    .candidate.association ?? 0) < 0.5,
             let repair = engine.spaceSlip(previous: previous.finalText, current: text, language: language)
         {
             history.removeLast()

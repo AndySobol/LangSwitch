@@ -84,6 +84,7 @@ final class InputEngine {
             diagnostics.removedLearnedWords = invalid.count
             scheduleFlush()
         }
+        self.learning.forgetStaleObservations()
         runtime.vocabulary.personal = self.learning.vocabulary
         self.runtime = runtime
         rebuildSession()
@@ -621,10 +622,14 @@ final class InputEngine {
             var before = previous
             for word in words {
                 let known = runtime.vocabulary.isKnown(word, language: language)
-                let mayLearn =
-                    known || runtime.engine.mayLearn(word, language: language, layouts: learningLayouts)
+                // An unknown word left as typed is watched: see `WordObservation`.
+                let learnability =
+                    known
+                    ? CorrectionEngine.Learnability.ordinary
+                    : runtime.engine.learnability(of: word, language: language, layouts: learningLayouts)
                 if let promoted = learning.recordWord(
-                    word, previous: before, known: known, mayLearn: mayLearn)
+                    word, previous: before, known: known, mayLearn: learnability != .never,
+                    doubtful: learnability == .doubtful)
                 {
                     runtime.vocabulary.personal = learning.vocabulary
                     emit(.learnedWord(promoted))

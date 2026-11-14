@@ -89,22 +89,49 @@ package struct CorrectionEngine {
     /// was left alone once is still a mistake, not vocabulary: "ghbdtn" reads as «привет» on the other
     /// layout and is keyboard noise on its own, so it is refused on both counts.
     package func mayLearn(_ word: String, language: Language, layouts: [KeyboardLayout]) -> Bool {
-        guard LearningData.isLearnable(word) else { return false }
-        let own = decider.reading(of: word, language: language)
-        let plausibility = own.plausibility ?? -9
+        learnability(of: word, language: language, layouts: layouts) != .never
+    }
+
+    /// How an unknown word, left as typed, may enter the user's vocabulary.
+    package enum Learnability: Sendable {
+        /// Keyboard noise or text typed on the wrong layout: never remembered.
+        case never
+        /// Could be a slip of a known word, or is too short to judge: has to prove more.
+        case doubtful
+        case ordinary
+    }
+
+    package func learnability(of word: String, language: Language, layouts: [KeyboardLayout]) -> Learnability
+    {
+        guard LearningData.isLearnable(word) else { return .never }
+        // A compound is judged by its parts: «оки-доки».
+        let parts = word.split(separator: "-").map(String.init)
+        let scores = parts.compactMap { decider.reading(of: $0, language: language).plausibility }
+        let plausibility = scores.min() ?? (word.count <= 3 ? 0 : -9)
         // Measured: unusual names score around -2.4 ("Bambu", "Zoltra"), wrong-layout text below -4.
-        if plausibility < -3.3 { return false }
-        guard let layout = layouts.first(where: { $0.language == language }),
+        if plausibility < -3.3 { return .never }
+        var doubtful = word.count <= 2
+        if let layout = layouts.first(where: { $0.language == language }),
             let otherLayout = layouts.first(where: { $0.language != language })
-        else { return true }
-        let other = decider.reading(of: layout.convert(word, to: otherLayout), language: language.other)
-        if other.allKnown { return false }
-        if other.letters >= 4, let otherPlausibility = other.plausibility, otherPlausibility > -1.0,
-            plausibility < otherPlausibility - 1.5
         {
-            return false
+            let other = decider.reading(of: layout.convert(word, to: otherLayout), language: language.other)
+            if other.allKnown {
+                // The same keys spell a real word on the other layout. An everyday or a long one means
+                // the layout was wrong («ghbdtn»); a short rare one («ил» for "bk") may be a coincidence.
+                if other.worstRank != nil || other.letters >= 4 { return .never }
+                doubtful = true
+            }
+            if other.letters >= 4, let otherPlausibility = other.plausibility, otherPlausibility > -1.0,
+                plausibility < otherPlausibility - 1.5
+            {
+                return .never
+            }
         }
-        return true
+        // The spelling model has a fair explanation of the word as a slip: «могну» next to «могу».
+        if let assessment = speller.assessment(of: word, language: language), assessment.confidence >= 0.4 {
+            doubtful = true
+        }
+        return doubtful ? .doubtful : .ordinary
     }
 
     /// A space that landed one letter early or late: «н ето» for «не то», «та ки» for «так и».
@@ -164,12 +191,19 @@ package struct CorrectionEngine {
         return true
     }
 
-    /// A chunk that the layout decision wants to convert, but which is better explained as a word of
-    /// the typed language with a slip in it: «руук» is «руку», not "heer".
+    /// A chunk that the layout decision wants to convert, but which is better explained without leaving
+    /// the typed language: a word with a slip in it («руук» is «руку», not "heer"), or the tail of a
+    /// space pressed one key early («та ки» is «так и», not «та rb»).
     private func isSlipInTypedLanguage(_ input: ChunkInput, alternative: String) -> Bool {
         let language = input.typedLanguage
         let word = input.typed.trimmingCharacters(in: CharacterSet(charactersIn: ".,!?:;()\"'«»"))
-        guard word.count >= 3, word.allSatisfy({ language.isLetter($0) }), let threshold = speller.threshold,
+        guard word.count >= 2, word.allSatisfy({ language.isLetter($0) }) else { return false }
+        if let previous = input.previousWords.last,
+            spaceSlip(previous: previous, current: word.lowercased(), language: language) != nil
+        {
+            return true
+        }
+        guard word.count >= 3, let threshold = speller.threshold,
             let assessment = speller.assessment(of: word, language: language, after: input.previousWords.last)
         else { return false }
         // Against an everyday word of the other language the slip has to be as certain as any

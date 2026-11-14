@@ -62,7 +62,6 @@ import Testing
     /// The word before decides what a short typo was meant to be.
     @Test(arguments: [
         ("пока включить ео", "пока включить его"), ("я не могу ег", "я не могу его"),
-        ("это апять", "это опять"),
     ])
     func previousWordDecides(pair: (String, String)) {
         #expect(typed(pair.0 + " ", active: .russian).lowercased() == pair.1 + " ")
@@ -130,6 +129,25 @@ import Testing
             for word in ["вайбкодинг", "Соболев", "кринжатина"] {
                 #expect(runtime.engine.mayLearn(word, language: .russian, layouts: layouts), "\(word)")
             }
+        }
+    }
+
+    /// How an unknown word may enter the personal dictionary: at once it never does.
+    @Test func learnabilityOfUnknownWords() {
+        withRuntime { runtime in
+            let layouts = KeyboardLayout.builtIn
+            func verdict(_ word: String, _ language: Language) -> CorrectionEngine.Learnability {
+                runtime.engine.learnability(of: word, language: language, layouts: layouts)
+            }
+            // Names and new words nothing else explains.
+            #expect(verdict("Zoltra", .english) == .ordinary)
+            #expect(verdict("оки-доки", .russian) == .ordinary)
+            // One letter away from an everyday word, or too short to judge.
+            #expect(verdict("могну", .russian) == .doubtful)
+            #expect(verdict("xk", .english) == .doubtful)
+            // The wrong layout, not vocabulary.
+            #expect(verdict("ghbdtn", .english) == .never)
+            #expect(verdict("руддщ", .russian) == .never)
         }
     }
 

@@ -61,7 +61,10 @@ package struct LayoutDecider {
         package var knownLetters = 0
         /// Rank of the least common word, nil when some word is not in the frequency list.
         package var worstRank: Int?
+        /// The same over the whole frequency list, extension included.
+        package var worstListedRank: Int?
         package var everyWordRanked = true
+        package var everyWordListed = true
         /// Length-weighted n-gram plausibility of words with three or more letters.
         package var plausibility: Float?
         package var longestWord = 0
@@ -96,6 +99,11 @@ package struct LayoutDecider {
             if knowledge.isPersonal { reading.hasPersonal = true }
             // "Frequent" here means the curated core of the list, which these rules were tuned on; the
             // extension ranks nearly every dictionary word and would tell nothing apart.
+            if let rank = knowledge.rank {
+                reading.worstListedRank = max(reading.worstListedRank ?? 0, rank)
+            } else {
+                reading.everyWordListed = false
+            }
             if let rank = knowledge.rank, rank < vocabulary.frequency[language]?.coreCount ?? 0 {
                 reading.worstRank = max(reading.worstRank ?? 0, rank)
             } else {
@@ -107,6 +115,7 @@ package struct LayoutDecider {
             }
         }
         if !reading.everyWordRanked { reading.worstRank = nil }
+        if !reading.everyWordListed { reading.worstListedRank = nil }
         if weight > 0 { reading.plausibility = weighted / weight }
         return reading
     }
@@ -167,6 +176,9 @@ package struct LayoutDecider {
             // everyday word, the typed one is not, and nothing says the typed language is in use.
             guard let otherRank = other.worstRank, own.worstRank == nil else { return .keep }
             if context.confirms(typedLanguage) { return .keep }
+            // A word that is reasonably common in its own language («ща») gives no reason to doubt the
+            // layout, however common the other reading ("of") is.
+            if let listed = own.worstListedRank, listed < 12_000 || own.letters <= 2 { return .keep }
             // Short technical tokens ("vs", "kb") lose only to the most common words ("мы", "ли").
             if own.hasTerm { return otherRank < 400 && own.letters <= 3 ? .convert : .keep }
             return otherRank < 1500 ? .convert : .keep
@@ -178,14 +190,13 @@ package struct LayoutDecider {
                 guard other.worstRank != nil, own.knownWords == 0 else { return .keep }
                 return context.confirms(typedLanguage) ? .keep : .convert
             }
-            // Short chunks prove little on their own. Inside text that is clearly in the typed
-            // language, an unknown short word is far more likely an abbreviation or a slip («ща», «вк»,
-            // «ки») than a word of the other language typed blind.
-            if other.letters <= 3, context.confirms(typedLanguage) { return .keep }
-            // A short token that is not an everyday word ("rb", "vt", «урн») proves nothing unless
-            // the other language is already being typed.
-            if other.letters <= 3, other.worstRank == nil, context.previousLanguage != alternativeLanguage {
-                return .keep
+            // A short chunk is converted on evidence, not by length: the same keys must spell an
+            // everyday word of the other language ("to", "the"), or a known term of three letters
+            // ("git", "dmg"). Anything weaker — a rare word, a two-letter term such as "rb" for «ки» —
+            // counts only when the other language is already being typed.
+            if other.letters <= 3 {
+                let strong = other.worstRank != nil || (other.hasTerm && other.letters == 3)
+                if !strong, context.previousLanguage != alternativeLanguage { return .keep }
             }
             // The typed text may still be an unlisted but real word (a surname, new slang) whose keys
             // happen to spell a rare word on the other layout.
@@ -196,7 +207,7 @@ package struct LayoutDecider {
             }
             ownScore += Float(own.knownLetters) / Float(max(own.letters, 1))
             var otherScore: Float = 1.6
-            if other.worstRank != nil { otherScore += 0.6 }
+            if other.worstRank != nil || other.hasTerm { otherScore += 0.6 }
             if other.letters >= 4 { otherScore += 0.3 }
             if context.previousLanguage == alternativeLanguage { otherScore += 0.3 }
             if context.previousLanguage == typedLanguage { otherScore -= 0.3 }
@@ -236,7 +247,11 @@ package struct LayoutDecider {
         let other = alternative.lowercased()
         if vocabulary.personal.keepAsTyped.contains(where: { $0.hasPrefix(own) }) { return false }
         if TextProtection.isProtected(typed) { return false }
-        guard vocabulary.frequency[otherLanguage]?.hasWord(withPrefix: other) == true else { return false }
+        // An everyday word, not any of the hundred thousand listed ones: a typo is the beginning of
+        // some rare word on the other layout far too often.
+        guard vocabulary.frequency[otherLanguage]?.hasCoreWord(withPrefix: other) == true else {
+            return false
+        }
 
         // Keys that are punctuation here and letters there ("hf,j" → «рабо») settle it.
         guard own.allSatisfy({ typedLanguage.isLetter($0) }) else { return true }
