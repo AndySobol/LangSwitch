@@ -83,6 +83,30 @@ package struct CorrectionEngine {
         self.abbreviations = abbreviations
     }
 
+    /// Whether an unknown word may be remembered as part of the user's own vocabulary.
+    ///
+    /// Learning must never turn a missed correction into a rule. A word typed on the wrong layout that
+    /// was left alone once is still a mistake, not vocabulary: "ghbdtn" reads as «привет» on the other
+    /// layout and is keyboard noise on its own, so it is refused on both counts.
+    package func mayLearn(_ word: String, language: Language, layouts: [KeyboardLayout]) -> Bool {
+        guard LearningData.isLearnable(word) else { return false }
+        let own = decider.reading(of: word, language: language)
+        let plausibility = own.plausibility ?? -9
+        // Measured: unusual names score around -2.4 ("Bambu", "Zoltra"), wrong-layout text below -4.
+        if plausibility < -3.3 { return false }
+        guard let layout = layouts.first(where: { $0.language == language }),
+            let otherLayout = layouts.first(where: { $0.language != language })
+        else { return true }
+        let other = decider.reading(of: layout.convert(word, to: otherLayout), language: language.other)
+        if other.allKnown { return false }
+        if other.letters >= 4, let otherPlausibility = other.plausibility, otherPlausibility > -1.0,
+            plausibility < otherPlausibility - 1.5
+        {
+            return false
+        }
+        return true
+    }
+
     /// True when a chunk ends a sentence, so the next word starts with a capital letter.
     package func endsSentence(_ chunk: String) -> Bool {
         guard let last = chunk.last, ".!?…".contains(last) else { return false }

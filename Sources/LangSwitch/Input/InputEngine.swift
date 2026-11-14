@@ -68,7 +68,23 @@ final class InputEngine {
     /// Loads dictionaries and models. Takes a moment; called once after launch.
     func load(learning: LearningData) -> Bool {
         self.learning = learning
-        let runtime = LanguageRuntime(personal: learning.vocabulary)
+        // Heal data written by earlier builds: words that were "learned" only because a conversion had
+        // failed. They are judged against a vocabulary that does not contain them yet.
+        var cleaned = learning
+        let suspects = cleaned.autoLearned
+        cleaned.removeAutoLearned { _ in true }
+        let runtime = LanguageRuntime(personal: cleaned.vocabulary)
+        let invalid = Set(
+            suspects.filter { word in
+                guard let language = Language.dominant(in: word) else { return true }
+                return !runtime.engine.mayLearn(word, language: language, layouts: KeyboardLayout.builtIn)
+            })
+        if !invalid.isEmpty {
+            self.learning.removeAutoLearned { invalid.contains($0) }
+            diagnostics.removedLearnedWords = invalid.count
+            scheduleFlush()
+        }
+        runtime.vocabulary.personal = self.learning.vocabulary
         self.runtime = runtime
         rebuildSession()
         return runtime.hasFullDictionaries
@@ -189,6 +205,11 @@ final class InputEngine {
         diagnostics.alternativeLayout = session?.layouts.alternative?.id ?? "none"
         diagnostics.hasSession = session != nil
         emit(.diagnostics(diagnostics))
+    }
+
+    /// Layouts used to ask "what would this word be on the other layout?" when learning.
+    private var learningLayouts: [KeyboardLayout] {
+        snapshot.layouts.isEmpty ? KeyboardLayout.builtIn : snapshot.layouts
     }
 
     // MARK: - State helpers
@@ -568,7 +589,11 @@ final class InputEngine {
             var before = previous
             for word in words {
                 let known = runtime.vocabulary.isKnown(word, language: language)
-                if let promoted = learning.recordWord(word, previous: before, known: known) {
+                let mayLearn =
+                    known || runtime.engine.mayLearn(word, language: language, layouts: learningLayouts)
+                if let promoted = learning.recordWord(
+                    word, previous: before, known: known, mayLearn: mayLearn)
+                {
                     runtime.vocabulary.personal = learning.vocabulary
                     emit(.learnedWord(promoted))
                 }

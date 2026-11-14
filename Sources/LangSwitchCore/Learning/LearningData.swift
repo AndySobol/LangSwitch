@@ -52,9 +52,14 @@ package struct LearningData: Sendable, Codable, Equatable {
     }
 
     /// Records a finished word. Returns the word when it has just been promoted to the vocabulary.
+    ///
+    /// - Parameter mayLearn: false for unknown words that must not become vocabulary (see
+    ///   `CorrectionEngine.mayLearn`); such a word is not counted at all.
     @discardableResult
-    package mutating func recordWord(_ word: String, previous: String?, known: Bool) -> String? {
-        guard Self.isLearnable(word) else { return nil }
+    package mutating func recordWord(_ word: String, previous: String?, known: Bool, mayLearn: Bool = true)
+        -> String?
+    {
+        guard Self.isLearnable(word), known || mayLearn else { return nil }
         let lower = word.lowercased()
         wordCounts[lower, default: 0] += 1
         if let previous, Self.isLearnable(previous) {
@@ -108,6 +113,23 @@ package struct LearningData: Sendable, Codable, Equatable {
         guard Self.isLearnable(corrected) else { return }
         typoCounts[corrected.lowercased(), default: 0] += 1
         if typoCounts.count > 800 { typoCounts = Self.trimmed(typoCounts, to: 600) }
+    }
+
+    /// Drops automatically learned words that fail `isValid` (and everything counted for them).
+    /// Returns the words removed.
+    @discardableResult
+    package mutating func removeAutoLearned(where isInvalid: (String) -> Bool) -> [String] {
+        let removed = autoLearned.filter(isInvalid)
+        for word in removed {
+            autoLearned.remove(word)
+            vocabulary.words.remove(word)
+            let lower = word.lowercased()
+            wordCounts[lower] = nil
+            unknownCounts[lower] = nil
+            bigrams[lower] = nil
+            for key in bigrams.keys { bigrams[key]?[lower] = nil }
+        }
+        return removed.sorted()
     }
 
     package mutating func addWord(_ word: String) {

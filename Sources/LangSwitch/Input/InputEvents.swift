@@ -73,6 +73,7 @@ struct EngineDiagnostics: Sendable, Equatable {
     var interrupts = 0
     var layoutChangesByUser = 0
     var layoutChangesByApp = 0
+    var removedLearnedWords = 0
     /// The last chunk as the engine saw it. Filled only when LANGSWITCH_TRACE=1 is set by a developer.
     var trace: String?
 
@@ -87,6 +88,7 @@ struct EngineDiagnostics: Sendable, Equatable {
             "engine.interrupts: \(interrupts)",
             "engine.layoutChangesByUser: \(layoutChangesByUser)",
             "engine.layoutChangesByApp: \(layoutChangesByApp)",
+            "engine.removedLearnedWords: \(removedLearnedWords)",
         ] + (trace.map { ["engine.trace: \($0)"] } ?? [])
     }
 }

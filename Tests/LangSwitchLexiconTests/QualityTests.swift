@@ -78,6 +78,42 @@ import Testing
         }
     }
 
+    /// Self-learning must not turn a missed conversion into a rule: once "ghbdtn" was learned as a
+    /// word of the user's own, it was never converted again.
+    @Test func wrongLayoutTextIsNeverLearned() {
+        withRuntime { runtime in
+            let layouts = KeyboardLayout.builtIn
+            for noise in ["Ghbdtn", "ghbdtn", "rfr", "ltkf", "cgfcb,j"] {
+                #expect(!runtime.engine.mayLearn(noise, language: .english, layouts: layouts), "\(noise)")
+            }
+            for noise in ["руддщ", "зкщпкфь", "цщкдв"] {
+                #expect(!runtime.engine.mayLearn(noise, language: .russian, layouts: layouts), "\(noise)")
+            }
+            for word in ["Zoltra", "Sobolev", "figjam", "kubernetes"] {
+                #expect(runtime.engine.mayLearn(word, language: .english, layouts: layouts), "\(word)")
+            }
+            for word in ["вайбкодинг", "Соболев", "кринжатина"] {
+                #expect(runtime.engine.mayLearn(word, language: .russian, layouts: layouts), "\(word)")
+            }
+        }
+    }
+
+    @Test func typingNoiseRepeatedlyDoesNotTeachIt() {
+        var learning = LearningData()
+        for _ in 0..<6 { learning.recordWord("Ghbdtn", previous: nil, known: false, mayLearn: false) }
+        #expect(learning.vocabulary.words.isEmpty)
+        #expect(learning.wordCounts.isEmpty)
+
+        // Data written by an earlier build is healed.
+        learning.vocabulary.words = ["Ghbdtn", "Zoltra"]
+        learning.autoLearned = ["Ghbdtn", "Zoltra"]
+        learning.wordCounts = ["ghbdtn": 4, "zoltra": 3]
+        let removed = learning.removeAutoLearned { $0 == "Ghbdtn" }
+        #expect(removed == ["Ghbdtn"])
+        #expect(learning.vocabulary.words == ["Zoltra"])
+        #expect(learning.wordCounts == ["zoltra": 3])
+    }
+
     /// Every "wrong" form in the misspelling tables must really be wrong: a table entry that is a valid
     /// word would silently rewrite correct text.
     @Test func misspellingTablesContainNoRealWords() {
