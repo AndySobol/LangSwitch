@@ -1,0 +1,33 @@
+# Build products and caches
+.build/
+.swiftpm/
+dist/
+build/
+DerivedData/
+*.xcodeproj/
+xcuserdata/
+*.xcuserstate
+
+# Local backup of the pre-1.0 prototype
+.legacy/
+
+# macOS
+.DS_Store
+
+# Credentials never belong in the repository
+.env
+.env.*
+!.env.example
+*.p12
+*.pem
+*.key
+*.keychain
+*.mobileprovision
+*.provisionprofile
+
+# Python
+__pycache__/
+*.pyc
+
+# Agent tooling
+.claude/

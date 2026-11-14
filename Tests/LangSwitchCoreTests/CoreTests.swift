@@ -1,0 +1,416 @@
+import Foundation
+import Testing
+
+@testable import LangSwitchCore
+
+/// A small self-contained engine: no bundled dictionaries, so these tests exercise mechanisms only.
+private func makeEngine(personal: PersonalVocabulary = PersonalVocabulary()) -> CorrectionEngine {
+    let russian = [
+        "привет", "мир", "как", "дела", "я", "в", "и", "работаю", "уже", "лет", "слово", "слове", "тест",
+        "что",
+        "сказал", "он", "придет", "дом", "котором", "живу", "знаю", "хорошо", "но", "поздно", "это", "Андрей",
+        "меня",
+        "зовут", "программа", "чтобы", "успеть", "встал", "рано",
+    ]
+    let english = [
+        "hello", "world", "the", "design", "a", "is", "and", "you", "figma", "git", "test", "receive",
+        "which",
+        "apple", "car", "an", "user", "however", "we", "can", "wait", "John", "it", "works",
+    ]
+    let dictionary = WordSetDictionary(english: english, russian: russian)
+    let frequency: [Language: FrequencyList] = [
+        .russian: FrequencyList(words: russian.map { $0.lowercased() }),
+        .english: FrequencyList(words: english.map { $0.lowercased() }),
+    ]
+    let terms = TermLexicon([
+        Term(canonical: "Figma", restoresCase: true), Term(canonical: "git", restoresCase: false),
+        Term(canonical: "Node.js", restoresCase: true),
+    ])
+    let vocabulary = Vocabulary(
+        dictionary: dictionary, terms: terms, slang: ["кринж"], frequency: frequency, personal: personal)
+    let models: [Language: NGramModel] = [
+        .russian: NGramModel(language: .russian, words: russian.map { ($0.lowercased(), Float(1)) }),
+        .english: NGramModel(language: .english, words: english.map { ($0.lowercased(), Float(1)) }),
+    ]
+    return CorrectionEngine(
+        vocabulary: vocabulary, models: models, misspellings: [.english: ["teh": "the", "im": "I'm"]],
+        abbreviations: ["т.е.", "e.g."])
+}
+
+/// `#expect` cannot wrap a mutating call, so the call is evaluated first and compared here.
+private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: SourceLocation = #_sourceLocation)
+{
+    #expect(value == expected, sourceLocation: sourceLocation)
+}
+
+@Suite struct KeyboardLayoutTests {
+    @Test func convertsBetweenLayoutsByPhysicalKey() {
+        #expect(KeyboardLayout.abc.convert("ghbdtn", to: .russian) == "привет")
+        #expect(KeyboardLayout.russian.convert("руддщ", to: .abc) == "hello")
+        #expect(KeyboardLayout.abc.convert("Ghbdtn^ vtyz", to: .russian) == "Привет, меня")
+        #expect(KeyboardLayout.abc.convert("hf,jnf.", to: .russian) == "работаю")
+    }
+
+    @Test func conversionIsReversibleForLetters() {
+        for word in ["привет", "Андрей", "съезд", "ёжик", "ЭЮЯ"] {
+            let latin = KeyboardLayout.russian.convert(word, to: .abc)
+            #expect(KeyboardLayout.abc.convert(latin, to: .russian) == word)
+        }
+    }
+
+    @Test func pcLayoutDiffersInPunctuation() {
+        #expect(KeyboardLayout.abc.convert("?", to: .russianPC) == ",")
+        #expect(KeyboardLayout.abc.convert("?", to: .russian) == "?")
+    }
+
+    @Test func capsLockAffectsLettersOnly() {
+        let layout = KeyboardLayout.abc
+        #expect(layout.character(for: KeyStroke(keyCode: 0, capsLock: true)) == "A")
+        #expect(layout.character(for: KeyStroke(keyCode: 0, shift: true, capsLock: true)) == "a")
+        #expect(layout.character(for: KeyStroke(keyCode: 18, capsLock: true)) == "1")
+    }
+}
+
+@Suite struct TokenizerTests {
+    @Test func tokensJoinBackToTheOriginal() {
+        for text in ["Привет, мир!", "don't stop-me", "что-то 12 лет", "mixed слово text", ""] {
+            #expect(Tokenizer.tokens(in: text).map(\.text).joined() == text)
+        }
+    }
+
+    @Test func wordsKeepInnerHyphensAndApostrophes() {
+        #expect(
+            Tokenizer.words(in: "don't кто-то well-known", language: .english) == ["don't", "well-known"])
+        #expect(Tokenizer.words(in: "don't кто-то", language: .russian) == ["кто-то"])
+    }
+
+    @Test(arguments: [
+        "https://example.org", "a.sobolev@example.com", "user_name", "getUserName", "h264", "./build.sh",
+        "#tag", "@andy",
+        "path/to/file", "--flag",
+    ])
+    func protectedText(chunk: String) {
+        #expect(TextProtection.isProtected(chunk))
+    }
+
+    @Test(arguments: ["hello", "привет,", "@ghbdtn@", "x\\v", "don't", "e;t"])
+    func ordinaryText(chunk: String) {
+        #expect(!TextProtection.isProtected(chunk))
+    }
+}
+
+@Suite struct TypingSessionTests {
+    @Test func convertsAndSwitchesLayout() {
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.press(keysFor: "привет мир ", on: .russian)
+        #expect(simulator.document == "привет мир ")
+        #expect(simulator.current.language == .russian)
+        #expect(simulator.replacements.count == 1)
+    }
+
+    @Test func backspaceUndoRestoresTextAndLayout() {
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.press(keysFor: "привет ", on: .russian)
+        simulator.backspace()
+        #expect(simulator.document == "ghbdtn ")
+        #expect(simulator.current.language == .english)
+        // After the undo, Backspace is an ordinary Backspace again.
+        simulator.backspace()
+        #expect(simulator.document == "ghbdtn")
+    }
+
+    @Test func editingInsideAChunkWithBackspace() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("привее")
+        simulator.backspace()
+        simulator.type("т ")
+        #expect(simulator.document == "привет ")
+        #expect(simulator.replacements.isEmpty)
+    }
+
+    @Test func manualLayoutSwitchInsideAWordDisablesCorrection() {
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.press(keysFor: "при", on: .russian)
+        simulator.switchLayout(to: .russian)
+        simulator.type("вет ")
+        #expect(simulator.document == "ghbвет ")
+    }
+
+    @Test func nothingHappensWhenEverythingIsDisabled() {
+        var simulator = TypingSimulator(engine: makeEngine(), options: .none)
+        simulator.press(keysFor: "привет ", on: .russian)
+        #expect(simulator.document == "ghbdtn ")
+    }
+
+    @Test func personalRulesOverrideTheDecision() {
+        var personal = PersonalVocabulary()
+        personal.keepAsTyped.insert("ghbdtn")
+        var simulator = TypingSimulator(engine: makeEngine(personal: personal))
+        simulator.press(keysFor: "привет ", on: .russian)
+        #expect(simulator.document == "ghbdtn ")
+    }
+
+    @Test func commaIsInsertedBeforeTheConjunction() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("он сказал что придет ")
+        #expect(simulator.document == "он сказал, что придет ")
+        simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("хорошо но поздно ")
+        #expect(simulator.document == "хорошо, но поздно ")
+    }
+
+    @Test func commaInsertionCanBeUndone() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("он сказал что ")
+        #expect(simulator.document == "он сказал, что ")
+        simulator.backspace()
+        #expect(simulator.document == "он сказал что ")
+    }
+
+    @Test func sentencesStartWithACapitalLetter() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("привет. как дела ")
+        #expect(simulator.document == "привет. Как дела ")
+    }
+
+    @Test func abbreviationsDoNotEndASentence() {
+        let engine = makeEngine()
+        #expect(!engine.endsSentence("т.е."))
+        #expect(!engine.endsSentence("e.g."))
+        #expect(!engine.endsSentence("А."))
+        #expect(engine.endsSentence("привет."))
+        #expect(engine.endsSentence("really?"))
+    }
+
+    @Test func termsAndProperNounsGetTheirCase() {
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.type("figma and john ")
+        #expect(simulator.document == "Figma and John ")
+    }
+
+    @Test func typosAreFixed() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("прогармма тесст ")
+        #expect(simulator.document == "программа тест ")
+        simulator = TypingSimulator(engine: makeEngine())
+        simulator.type("teh desgin ")
+        #expect(simulator.document == "the design ")
+    }
+
+    @Test func doubledCapitalIsRepaired() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("ПРивет ")
+        #expect(simulator.document == "Привет ")
+    }
+
+    @Test func manualConversionOfTheFinishedWord() {
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.type("zoltra ")
+        simulator.convertManually()
+        #expect(simulator.document == "ящдекф ")
+        simulator.convertManually()
+        #expect(simulator.document == "zoltra ")
+    }
+}
+
+@Suite struct PunctuationTests {
+    @Test func spacingIsNormalised() {
+        #expect(TextFixer.fixSpacing("Привет ,  мир !") == "Привет, мир!")
+        #expect(TextFixer.fixSpacing("это - тест") == "это — тест")
+        #expect(TextFixer.fixSpacing("  indented   line") == "  indented line")
+        #expect(TextFixer.fixSpacing("ok :) fine") == "ok :) fine")
+        #expect(TextFixer.fixSpacing("open .gitignore now") == "open .gitignore now")
+    }
+
+    @Test func fullTextFixAddsCommasAndCapitals() {
+        let fixer = TextFixer(engine: makeEngine())
+        #expect(
+            fixer.fix("я знаю что он придет", options: CorrectionOptions()).text == "Я знаю, что он придет")
+        #expect(
+            fixer.fix("дом в котором я живу", options: CorrectionOptions()).text == "Дом, в котором я живу")
+        #expect(
+            fixer.fix("встал рано чтобы успеть", options: CorrectionOptions()).text
+                == "Встал рано, чтобы успеть")
+        #expect(fixer.fix("however we can wait", options: CorrectionOptions()).text == "However, we can wait")
+        #expect(
+            fixer.fix("it is a apple and an car", options: CorrectionOptions()).text
+                == "It is an apple and a car")
+    }
+
+    @Test func correctTextIsUntouched() {
+        let fixer = TextFixer(engine: makeEngine())
+        for text in ["Я знаю, что он придет.", "Hello, world!", "Привет, как дела?"] {
+            #expect(fixer.fix(text, options: CorrectionOptions()).text == text)
+        }
+    }
+
+    @Test func fixIsIdempotent() {
+        let fixer = TextFixer(engine: makeEngine())
+        let once = fixer.fix("ghbdtn vbh? я знаю что он придет", options: CorrectionOptions()).text
+        #expect(fixer.fix(once, options: CorrectionOptions()).text == once)
+    }
+
+    @Test func articles() {
+        #expect(PunctuationRules.indefiniteArticle(before: "apple") == "an")
+        #expect(PunctuationRules.indefiniteArticle(before: "user") == "a")
+        #expect(PunctuationRules.indefiniteArticle(before: "hour") == "an")
+        #expect(PunctuationRules.indefiniteArticle(before: "university") == "a")
+        #expect(PunctuationRules.indefiniteArticle(before: "uninstall") == "an")
+        #expect(PunctuationRules.indefiniteArticle(before: "API") == nil)
+    }
+}
+
+@Suite struct LearningTests {
+    @Test func repeatedUnknownWordIsPromoted() {
+        var learning = LearningData()
+        check(learning.recordWord("Zoltra", previous: nil, known: false), nil)
+        check(learning.recordWord("Zoltra", previous: nil, known: false), nil)
+        check(learning.recordWord("Zoltra", previous: nil, known: false), "Zoltra")
+        #expect(learning.vocabulary.knows("zoltra") == "Zoltra")
+        #expect(learning.autoLearned.contains("Zoltra"))
+    }
+
+    @Test func twoUndosBecomeARule() {
+        var learning = LearningData()
+        check(learning.recordRejection(typed: "Ghbdtn"), false)
+        check(learning.recordRejection(typed: "ghbdtn"), true)
+        #expect(learning.vocabulary.keepAsTyped.contains("ghbdtn"))
+    }
+
+    @Test func twoManualConversionsBecomeARule() {
+        var learning = LearningData()
+        _ = learning.recordManualConversion(typed: "zoltra")
+        check(learning.recordManualConversion(typed: "zoltra"), true)
+        #expect(learning.vocabulary.alwaysConvert.contains("zoltra"))
+    }
+
+    @Test func survivesEncodingAndOldFiles() throws {
+        var learning = LearningData()
+        learning.recordWord("привет", previous: "всем", known: true)
+        learning.recordTypo(corrected: "программа")
+        let decoded = try JSONDecoder().decode(LearningData.self, from: JSONEncoder().encode(learning))
+        #expect(decoded == learning)
+        // A file written by an older version, with fields missing.
+        let partial = try JSONDecoder().decode(LearningData.self, from: Data("{}".utf8))
+        #expect(partial == LearningData())
+    }
+
+    @Test func digitsAndFragmentsAreNotLearned() {
+        #expect(!LearningData.isLearnable("ab"))
+        #expect(!LearningData.isLearnable("pass123"))
+        #expect(!LearningData.isLearnable("-word"))
+        #expect(LearningData.isLearnable("кто-то"))
+    }
+}
+
+@Suite struct CompletionTests {
+    private let engine = CompletionEngine(frequency: [
+        .russian: FrequencyList(words: ["привет", "пожалуйста", "проект", "проверить"]),
+        .english: FrequencyList(words: ["please", "project", "design"]),
+    ])
+
+    @Test func completesFromTheFrequencyList() {
+        #expect(engine.complete(prefix: "пожа", language: .russian)?.remainder == "луйста")
+        #expect(engine.complete(prefix: "Про", language: .russian)?.word == "Проект")
+        #expect(engine.complete(prefix: "PLE", language: .english)?.remainder == "ASE")
+    }
+
+    @Test func staysQuietWhenNothingFits() {
+        #expect(engine.complete(prefix: "пр", language: .russian) == nil)
+        #expect(engine.complete(prefix: "ghb", language: .english) == nil)
+        // One letter left: not worth a hint.
+        #expect(engine.complete(prefix: "приве", language: .russian) == nil)
+    }
+
+    @Test func personalHistoryWins() {
+        var learning = LearningData()
+        for _ in 0..<6 { learning.recordWord("проверить", previous: "надо", known: true) }
+        #expect(
+            engine.complete(prefix: "про", language: .russian, previous: "надо", learning: learning)?.word
+                == "проверить")
+        #expect(engine.nextWord(after: "надо", learning: learning) == "проверить")
+    }
+}
+
+@Suite struct TrainerTests {
+    @Test func countsSpeedAccuracyAndCombo() {
+        var session = TrainerSession(text: "abc de", language: .english, source: .words)
+        check(session.type("a", at: 0), .correct)
+        check(session.type("x", at: 1), .wrong(expected: "b"))
+        #expect(session.combo == 0)
+        check(session.type("b", at: 2), .correct)
+        for (index, character) in "c de".enumerated() { _ = session.type(character, at: Double(3 + index)) }
+        #expect(session.isFinished)
+        #expect(session.mistakes == 1)
+        #expect(abs(session.accuracy - 6.0 / 7.0) < 0.0001)
+        // Six characters in six seconds: 1.2 words in 0.1 minute.
+        #expect(abs(session.wpm(at: 6) - 12) < 0.01)
+        #expect(session.result(at: 6).missedKeys == ["b": 1])
+    }
+
+    @Test func timedExerciseEndsOnItsOwn() {
+        var session = TrainerSession(
+            text: String(repeating: "a", count: 100), language: .english, source: .words, timeLimit: 5)
+        _ = session.type("a", at: 10)
+        session.tick(at: 14.9)
+        #expect(!session.isFinished)
+        session.tick(at: 15.2)
+        #expect(session.isFinished)
+        #expect(session.elapsed(at: 99) == 5)
+        check(session.type("a", at: 16), .ignored)
+    }
+
+    @Test func yoMayBeTypedAsYe() {
+        var session = TrainerSession(text: "ёж", language: .russian, source: .texts)
+        check(session.type("е", at: 0), .correct)
+    }
+
+    @Test func profileTracksLevelRecordAndStreak() {
+        var profile = TrainerProfile()
+        let calendar = Calendar(identifier: .gregorian)
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        func result(_ wpm: Double, _ date: Date) -> TrainerResult {
+            TrainerResult(
+                date: date, language: .russian, source: .words, wpm: wpm, accuracy: 0.97, duration: 30,
+                characters: 200,
+                mistakes: 4, maxCombo: 50, score: 5000, timeline: [], missedKeys: ["ж": 3])
+        }
+        let first = profile.record(result(40, day), calendar: calendar)
+        #expect(first.isRecord && first.leveledUp && first.streakDays == 1)
+        let second = profile.record(result(35, day.addingTimeInterval(86_400)), calendar: calendar)
+        #expect(!second.isRecord && second.streakDays == 2)
+        let third = profile.record(result(50, day.addingTimeInterval(4 * 86_400)), calendar: calendar)
+        #expect(third.isRecord && third.streakDays == 1)
+        #expect(profile.weakKeys(limit: 3) == ["ж"])
+        #expect(profile.level >= 2)
+    }
+
+    @Test func phrasesWithSecretsAreNeverCollected() {
+        #expect(PhraseCollector.isSafe("Давай созвонимся завтра после обеда"))
+        #expect(!PhraseCollector.isSafe("мой код 482913 для входа в банк"))
+        #expect(!PhraseCollector.isSafe("напиши мне на a.sobolev@example.com сегодня вечером"))
+        #expect(!PhraseCollector.isSafe("да нет"))
+        var collector = PhraseCollector()
+        check(collector.add(chunk: "Давай", endsSentence: false, endsLine: false), nil)
+        _ = collector.add(chunk: "созвонимся", endsSentence: false, endsLine: false)
+        _ = collector.add(chunk: "завтра", endsSentence: false, endsLine: false)
+        check(
+            collector.add(chunk: "утром.", endsSentence: true, endsLine: false),
+            "Давай созвонимся завтра утром.")
+    }
+
+    @Test func bundledPassagesAreTypeable() {
+        let resources = CoreResources.load()
+        for language in Language.allCases {
+            let passages = resources.trainer.passages[language] ?? []
+            #expect(passages.count >= 30)
+            for passage in passages {
+                #expect(TrainerContent.isTypeable(passage.text, language: language), "\(passage.id)")
+            }
+            #expect((resources.trainer.words[language] ?? []).count >= 300)
+            #expect((resources.frequency[language]?.count ?? 0) >= 2000)
+        }
+        #expect(resources.terms.count >= 500)
+        #expect(resources.terms.term(for: "figma")?.canonical == "Figma")
+    }
+}
