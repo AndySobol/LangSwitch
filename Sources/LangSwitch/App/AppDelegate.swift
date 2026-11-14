@@ -103,9 +103,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.isReleasedWhenClosed = false
-            window.minSize = NSSize(width: 900, height: 620)
+            window.contentMinSize = NSSize(width: 860, height: 560)
             window.delegate = self
-            window.contentViewController = NSHostingController(rootView: RootView().environment(model))
+            let hosting = NSHostingController(rootView: RootView().environment(model))
+            // By default the hosting controller pins the window to the content's ideal size, which blocks
+            // resizing. The window owns its size; SwiftUI fills whatever it is given.
+            hosting.sizingOptions = []
+            window.contentViewController = hosting
             window.setContentSize(NSSize(width: 1040, height: 700))
             window.center()
             window.setFrameAutosaveName("LangSwitchMainWindow")
@@ -119,7 +123,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        model?.stopPollingTrust()
         // Back to a pure menu-bar application: no Dock icon, no window server work.
         NSApp.setActivationPolicy(.accessory)
         // Drop the whole view hierarchy and its graphics surfaces; the window is rebuilt on demand.

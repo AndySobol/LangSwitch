@@ -1,5 +1,6 @@
 import AppKit
 import LangSwitchCore
+import OSLog
 import Observation
 import ServiceManagement
 
@@ -110,6 +111,18 @@ final class AppModel {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.applicationChanged() }
         }
+        // macOS posts this when the Accessibility list changes; the new state is readable a moment later.
+        DistributedNotificationCenter.default().addObserver(
+            forName: Notification.Name("com.apple.accessibility.api"), object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                Task {
+                    try? await Task.sleep(for: .milliseconds(600))
+                    self.refreshTrust()
+                }
+            }
+        }
         phrases.prune(olderThan: settings.phraseRetentionDays)
 
         let learning = learning
@@ -124,7 +137,11 @@ final class AppModel {
             await engine.setApplication(front)
             trainerContent = await engine.trainerContent()
             isLoaded = true
+            Self.log.notice("Engine loaded; Accessibility trusted: \(Accessibility.isTrusted)")
+            writeDiagnostics()
             refreshTrust()
+            // Without the permission nothing works, so keep looking for it whether or not a window is open.
+            if !isRunning { pollTrust() }
         }
     }
 
@@ -144,28 +161,61 @@ final class AppModel {
 
     /// Checks Accessibility access and starts the keyboard tap once it is granted.
     func refreshTrust() {
-        isTrusted = Accessibility.isTrusted
-        guard isTrusted, isLoaded, !isRunning else { return }
-        Task { isRunning = await engine.startTap() }
+        let trusted = Accessibility.isTrusted
+        let changed = trusted != isTrusted
+        isTrusted = trusted
+        if changed {
+            Self.log.notice("Accessibility trusted: \(trusted)")
+            writeDiagnostics()
+        }
+        guard isTrusted, isLoaded, !isRunning, !isStartingTap else { return }
+        isStartingTap = true
+        Task {
+            let started = await engine.startTap()
+            Self.log.notice("Keyboard tap started: \(started)")
+            isRunning = started
+            isStartingTap = false
+            writeDiagnostics()
+        }
     }
 
-    /// Re-checks the permission every second while the user is in System Settings granting it.
+    /// A small state file for troubleshooting ("why is nothing being corrected?"). States only, no text.
+    private func writeDiagnostics() {
+        let version =
+            Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
+        let lines = [
+            "version: \(version)",
+            "updated: \(Date().formatted(.iso8601))",
+            "engineLoaded: \(isLoaded)",
+            "accessibilityTrusted: \(Accessibility.isTrusted)",
+            "keyboardTapRunning: \(isRunning)",
+            "layouts: \(layouts.layouts.map(\.id).joined(separator: ", "))",
+            "currentLayout: \(layouts.currentID ?? "none")",
+            "enabled: \(settings.enabled)",
+        ]
+        let url = store.folder.appendingPathComponent("diagnostics.txt")
+        try? lines.joined(separator: "\n").appending("\n").write(to: url, atomically: true, encoding: .utf8)
+    }
+
+    /// Diagnostics never include typed text: states and counts only.
+    private static let log = Logger(subsystem: "io.github.andysobol.LangSwitch", category: "app")
+    @ObservationIgnored private var isStartingTap = false
+
+    /// Re-checks the permission until the keyboard tap is running. This is the only periodic work in the
+    /// application, and it exists only while the permission is missing.
     func pollTrust() {
         guard trustPolling == nil, !isRunning else { return }
         trustPolling = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(1.5))
                 guard let self else { return }
                 self.refreshTrust()
+                // Starting the tap is asynchronous; give it a moment before deciding to stop.
+                try? await Task.sleep(for: .milliseconds(300))
                 if self.isRunning { break }
             }
             self?.trustPolling = nil
         }
-    }
-
-    func stopPollingTrust() {
-        trustPolling?.cancel()
-        trustPolling = nil
     }
 
     func requestAccessibility() {
