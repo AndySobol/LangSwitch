@@ -138,6 +138,12 @@ final class InputEngine {
             self.snapshot = snapshot
             return
         }
+        if !byUser, let pending = pendingLayout, CFAbsoluteTimeGetCurrent() < pending.deadline {
+            // A late notice about an earlier switch, while a newer one is under way: keep the newer
+            // belief. If it is wrong, the next key press says so and the session follows the keyboard.
+            self.snapshot.layouts = snapshot.layouts
+            return
+        }
         pendingLayout = nil
         self.snapshot = snapshot
         guard let current = snapshot.current else {
@@ -159,7 +165,7 @@ final class InputEngine {
     func setApplication(_ application: FrontApplication) {
         guard application != self.application else { return }
         self.application = application
-        session?.interrupt(resetContext: true)
+        session?.interrupt()
         collector.reset()
         lastAutoConversion = nil
         hideCompletion()
@@ -426,6 +432,12 @@ final class InputEngine {
                 session?.taint()
                 return false
             }
+            if event.getIntegerValueField(.keyboardEventAutorepeat) != 0 {
+                // A held key: macOS may show the accent menu instead of repeating, so the number of
+                // characters in the field is unknown.
+                session?.taint()
+                return false
+            }
             let stroke = KeyStroke(keyCode: keyCode, shift: shift, capsLock: flags.contains(.maskAlphaShift))
             var produced = Character(scalar)
             if let pending = pendingLayout {
@@ -533,13 +545,7 @@ final class InputEngine {
             if let proxy { copy.tapPostEvent(proxy) } else { copy.post(tap: .cgSessionEventTap) }
         }
         if let id = replacement.switchLayoutTo { switchLayout(to: id) }
-        if replacement.isUndo {
-            if replacement.kinds.contains(.layout), learning.recordRejection(typed: replacement.corrected) {
-                runtime?.vocabulary.personal = learning.vocabulary
-            }
-            lastAutoConversion = nil
-            scheduleFlush()
-        }
+        if replacement.isUndo { lastAutoConversion = nil }
         emit(.corrected(replacement, application: application.name))
         return true
     }
@@ -556,11 +562,20 @@ final class InputEngine {
         }
         self.session = session
         hideCompletion()
+        let rejected = lastAutoConversion
         guard apply(replacement, redeliver: nil, proxy) else { return }
-        if let last = lastAutoConversion, last.corrected == replacement.original {
-            // Toggling back what LangSwitch converted on its own is a rejection of that conversion.
-            _ = learning.recordRejection(typed: last.typed)
-            lastAutoConversion = nil
+        if replacement.isUndo {
+            // Taking back an automatic layout conversion by hand is the one signal that teaches
+            // "leave this alone"; a plain Backspace never is.
+            if let rejected, replacement.kinds.contains(.layout) {
+                _ = learning.recordRejection(typed: rejected.typed)
+            }
+            // Taking back a spelling fix says "this is my word": remember it at once.
+            if replacement.kinds.contains(.spelling), !replacement.corrected.contains(" "),
+                LearningData.isLearnable(replacement.corrected)
+            {
+                learning.addWord(replacement.corrected)
+            }
         } else {
             _ = learning.recordManualConversion(typed: replacement.original)
         }

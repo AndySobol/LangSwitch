@@ -31,7 +31,7 @@ struct AppSettings: Codable, Sendable, Equatable {
     var fixesSpelling = true
     var fixesPunctuation = true
     var fixesCapitalization = true
-    var backspaceUndoes = true
+    var backspaceUndoes = false
     var doubleShiftConverts = true
     var convertsEarly = true
 

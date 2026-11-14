@@ -15,6 +15,9 @@ package struct LayoutDecider {
         package var sawOtherLanguage = false
         /// The user switched the layout by hand shortly before typing this chunk.
         package var manualSwitch = false
+        /// The chunk may be the tail of a word that was already in the field (the caret was placed
+        /// with the mouse): only an unmistakable wrong layout may be converted.
+        package var fragment = false
 
         package init(previousLanguage: Language? = nil, streak: Int = 1, manualSwitch: Bool = false) {
             self.previousLanguage = previousLanguage
@@ -69,7 +72,7 @@ package struct LayoutDecider {
     }
 
     private let vocabulary: Vocabulary
-    private let models: [Language: NGramModel]
+    package let models: [Language: NGramModel]
 
     package init(vocabulary: Vocabulary, models: [Language: NGramModel]) {
         self.vocabulary = vocabulary
@@ -127,9 +130,22 @@ package struct LayoutDecider {
         // A whole-chunk term such as "node.js" or "c++".
         let trimmed = typed.trimmingCharacters(in: CharacterSet(charactersIn: ".,!?:;()\"'"))
         if typedLanguage == .english, vocabulary.terms.term(for: trimmed) != nil { return .keep }
-        if typedLanguage == .english, TextProtection.isProtected(typed) { return .keep }
 
         let own = reading(of: typed, language: typedLanguage)
+        // Links, mentions and identifiers are left alone — unless what looks like one is keyboard noise
+        // that reads as real words on the other layout («"привет» typed as "@ghbdtn").
+        if typedLanguage == .english, TextProtection.isProtected(typed) {
+            let noise = own.knownWords == 0 && (own.plausibility ?? -9) < -3.3
+            guard noise, other.allKnown, other.letters >= 4 else { return .keep }
+        }
+        // A possible word fragment: convert only a whole, unmistakable word.
+        if context.fragment {
+            guard other.allKnown, other.letters >= 4, own.knownWords == 0, (own.plausibility ?? -9) < -2.5
+            else {
+                return .keep
+            }
+            return .convert
+        }
 
         // Only punctuation was typed, yet the same keys spell a word on the other layout (",fpf" → "база").
         if own.letters == 0 {
@@ -160,11 +176,20 @@ package struct LayoutDecider {
                 guard other.worstRank != nil, own.knownWords == 0 else { return .keep }
                 return context.confirms(typedLanguage) ? .keep : .convert
             }
+            // Short chunks prove little on their own. Inside text that is clearly in the typed
+            // language, an unknown short word is far more likely an abbreviation or a slip («ща», «вк»,
+            // «ки») than a word of the other language typed blind.
+            if other.letters <= 3, context.confirms(typedLanguage) { return .keep }
+            // A technical token ("rb", "js") is weaker evidence still.
+            if other.letters == 2, other.worstRank == nil, context.previousLanguage == typedLanguage {
+                return .keep
+            }
             // The typed text may still be an unlisted but real word (a surname, new slang) whose keys
             // happen to spell a rare word on the other layout.
             var ownScore: Float = 0
-            if let plausibility = own.plausibility, own.longestWord >= 4 {
-                ownScore = min(max((plausibility + 2.0) / 2.0, 0), 1.6)
+            // Names score around -2.4 on the letter model, keyboard noise below -4.
+            if let plausibility = own.plausibility, own.longestWord >= 3 {
+                ownScore = min(max((plausibility + 3.3) / 2.2, 0), 1.6)
             }
             ownScore += Float(own.knownLetters) / Float(max(own.letters, 1))
             var otherScore: Float = 1.6
@@ -180,10 +205,13 @@ package struct LayoutDecider {
         guard own.knownWords == 0, !context.manualSwitch, other.letters >= 4 else { return .keep }
         guard let otherPlausibility = other.plausibility else { return .keep }
         let ownPlausibility = own.plausibility ?? -6
+        // Measured on the letter model: real but unlisted words (names, new slang such as «апрув»)
+        // stay above -3.3, text typed on the wrong layout falls below -4. So the typed reading must be
+        // outright noise and the other one must look like an ordinary word.
         let knownShare = Float(other.knownLetters) / Float(other.letters)
-        let required: Float = knownShare >= 0.5 ? 1.5 : 2.5
-        if otherPlausibility >= -1.2 && otherPlausibility - ownPlausibility >= required
-            && ownPlausibility < -1.5
+        let required: Float = knownShare >= 0.5 ? 2.5 : 3.0
+        if otherPlausibility >= -0.8 && otherPlausibility - ownPlausibility >= required
+            && ownPlausibility < -3.3
         {
             return .convert
         }

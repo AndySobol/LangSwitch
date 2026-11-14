@@ -155,7 +155,9 @@ package struct SuggestionEngine {
         guard lettersOnly else { return Array(result.prefix(limit)) }
 
         if !knowledge.isKnown {
-            if let fixed = engine.speller.autoCorrection(for: word, language: language) {
+            if let fixed = engine.speller.autoCorrection(
+                for: word, language: language, capitalIsOrdinary: true)
+            {
                 add(fixed, .spelling)
             }
             for candidate in engine.speller.candidates(for: word, language: language, deep: true).prefix(7) {

@@ -44,10 +44,13 @@ package final class LanguageRuntime {
             hasFullDictionaries = false
         }
         let vocabulary = Vocabulary(
-            dictionary: dictionary, terms: resources.terms, slang: resources.slang,
+            dictionary: dictionary, terms: resources.terms,
             frequency: resources.frequency,
             personal: personal)
         self.vocabulary = vocabulary
+        if let hunspell {
+            vocabulary.lemmatizer = { word, language in hunspell.stems(of: word, language: language) }
+        }
 
         var models: [Language: NGramModel] = [:]
         for language in Language.allCases {
@@ -56,13 +59,11 @@ package final class LanguageRuntime {
             // Everyday word forms carry the endings the stems lack, so they weigh more.
             let frequent = resources.frequency[language]?.words ?? []
             for (index, word) in frequent.enumerated() { builder.add(word, weight: index < 500 ? 40 : 12) }
-            if language == .russian { for word in resources.slang { builder.add(word, weight: 2) } }
             models[language] = builder.build()
         }
 
         let engine = CorrectionEngine(
-            vocabulary: vocabulary, models: models, misspellings: resources.misspellings,
-            abbreviations: resources.abbreviations)
+            vocabulary: vocabulary, models: models, abbreviations: resources.abbreviations)
         self.engine = engine
         self.fixer = TextFixer(engine: engine)
         self.completion = CompletionEngine(frequency: resources.frequency, terms: resources.terms)

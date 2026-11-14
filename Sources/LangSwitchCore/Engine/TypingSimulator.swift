@@ -96,6 +96,17 @@ package struct TypingSimulator {
         _ = apply(.replace(replacement, swallowKey: true))
     }
 
+    /// The caret is placed with the mouse: the session no longer knows what surrounds it.
+    package mutating func click() {
+        session.interrupt()
+    }
+
+    /// Whether Backspace right after a correction undoes it (off by default, as in the application).
+    package var backspaceUndoes: Bool {
+        get { session.backspaceUndoes }
+        set { session.backspaceUndoes = newValue }
+    }
+
     /// The system layout changes without the session being told (a lost or late notification).
     package mutating func switchLayoutSilently(to layout: KeyboardLayout) {
         current = layout

@@ -25,7 +25,7 @@ except `Figma`, which only gets its capital letter.
 | | |
 | --- | --- |
 | **Layout** | Decides the language from dictionaries, word frequencies and letter statistics. Leaves `git`, `GitLab`, `gmail`, links, e-mail addresses, `camelCase` and code untouched. |
-| **Spelling** | Swapped, missing and doubled letters, neighbouring-key slips, 3,600 common misspellings in Russian and English. |
+| **Spelling** | An error model instead of a word list: slips of the hands (swapped, missing, doubled letters) and the spelling rules of each language — Russian soft sign, vowels after hushing sounds, paired consonants, silent letters, prefixes, joined/separate/hyphenated words; English double consonants, unstressed vowels, silent e, apostrophes. `recieve` → `receive`, `definately` → `definitely`, `dont` → `don't`. |
 | **Punctuation** | Commas before Russian conjunctions, a space after a comma, sentence capitals, proper names, `HEllo` → `Hello`. |
 | **Autocomplete** | Grey ghost text after the caret, accepted with <kbd>Tab</kbd>. Learns your own vocabulary. |
 | **Alternatives** | Double-click a word in any field for spellings, word forms and synonyms. |

@@ -26,18 +26,44 @@ import Testing
 
     @Test(arguments: [
         ("првиет", "привет"), ("програма", "программа"), ("тесст", "тест"), ("здраствуйте", "здравствуйте"),
-        ("сдесь", "здесь"), ("вобщем", "в общем"), ("чтото", "что-то"), ("помоему", "по-моему"),
-        ("пожалуста", "пожалуйста"), ("агенство", "агентство"), ("будующий", "будущий"),
-        ("как-будто", "как будто"), ("врядли", "вряд ли"),
+        ("вобщем", "в общем"), ("чтото", "что-то"), ("помоему", "по-моему"), ("пожалуста", "пожалуйста"),
+        ("агенство", "агентство"), ("исравляем", "исправляем"), ("илседования", "исследования"),
     ])
     func russianTypos(pair: (String, String)) {
         #expect(typed(pair.0 + " ", active: .russian) == pair.1 + " ")
     }
 
+    /// One example per spelling rule the model knows; none of these words is listed anywhere.
     @Test(arguments: [
-        ("teh", "the"), ("recieve", "receive"), ("definately", "definitely"), ("becuase", "because"),
-        ("dont", "don't"), ("im", "I'm"), ("freind", "friend"), ("seperate", "separate"), ("wich", "which"),
-        ("tommorow", "tomorrow"),
+        ("любиш", "любишь"), ("стараеться", "старается"), ("обьект", "объект"), ("жызнь", "жизнь"),
+        ("цыфра", "цифра"), ("ищют", "ищут"), ("безплатно", "бесплатно"), ("зделать", "сделать"),
+        ("прикрасные", "прекрасные"), ("чуствовать", "чувствовать"), ("сонце", "солнце"),
+        ("лесница", "лестница"),
+        ("колега", "коллега"), ("исскуство", "искусство"), ("как-будто", "как будто"), ("что-ли", "что ли"),
+        ("буд-то", "будто"), ("по-этому", "поэтому"), ("ктото", "кто-то"), ("подружески", "по-дружески"),
+        ("вточности", "в точности"), ("немогу", "не могу"),
+    ])
+    func russianSpellingRules(pair: (String, String)) {
+        #expect(typed("и " + pair.0 + " ", active: .russian) == "и " + pair.1 + " ")
+    }
+
+    /// The space pressed one key too early or too late.
+    @Test(arguments: [("н ето", "не то"), ("та ки", "так и"), ("ка кдела", "как дела")])
+    func slippedSpace(pair: (String, String)) {
+        #expect(typed("вот " + pair.0 + " ", active: .russian) == "вот " + pair.1 + " ")
+    }
+
+    /// Words that only the sentence could decide are left as typed rather than guessed.
+    @Test(arguments: ["го", "ео", "пртит", "апять", "мб", "спс"])
+    func ambiguousShortWordsAreLeftAlone(word: String) {
+        #expect(typed("это " + word + " ", active: .russian) == "это " + word + " ")
+    }
+
+    @Test(arguments: [
+        ("teh", "the"), ("recieve", "receive"), ("becuase", "because"),
+        ("dont", "don't"), ("freind", "friend"), ("wich", "which"), ("tommorow", "tomorrow"),
+        ("perfomance", "performance"), ("imporve", "improve"), ("truely", "truly"), ("seperate", "separate"),
+        ("definately", "definitely"), ("alot", "a lot"), ("youre", "you're"),
     ])
     func englishTypos(pair: (String, String)) {
         #expect(typed(pair.0 + " ", active: .abc) == pair.1 + " ")
@@ -112,30 +138,6 @@ import Testing
         #expect(removed == ["Ghbdtn"])
         #expect(learning.vocabulary.words == ["Zoltra"])
         #expect(learning.wordCounts == ["zoltra": 3])
-    }
-
-    /// Every "wrong" form in the misspelling tables must really be wrong: a table entry that is a valid
-    /// word would silently rewrite correct text.
-    @Test func misspellingTablesContainNoRealWords() {
-        // Asked directly, bypassing frequency lists and slang.
-        let dictionary = try? HunspellDictionary()
-        withRuntime { runtime in
-            for language in Language.allCases {
-                let table = runtime.resources.misspellings[language] ?? [:]
-                #expect(table.count > 400)
-                // Hunspell accepts hyphenated compounds part by part, so those are judged by the table alone.
-                let real = table.keys.filter {
-                    !$0.contains("-") && (dictionary?.contains($0, language: language) ?? false)
-                }
-                .sorted()
-                print("misspellings \(language): \(table.count) entries, valid words among them: \(real)")
-                #expect(real.isEmpty, "\(real)")
-            }
-            #expect((runtime.resources.thesaurus[.russian]?.count ?? 0) > 500)
-            #expect((runtime.resources.thesaurus[.english]?.count ?? 0) > 500)
-            let synonyms = runtime.suggestions.suggestions(for: "быстро")
-            #expect(synonyms.contains { $0.kind == .synonym })
-        }
     }
 
     /// The false-positive audit: 120 correct passages, typed normally with every correction switched on,

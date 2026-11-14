@@ -151,7 +151,6 @@ package struct PersonalVocabulary: Sendable, Codable, Equatable {
 package final class Vocabulary {
     private let dictionary: any SpellingDictionary
     package let terms: TermLexicon
-    package let slang: Set<String>
     package let frequency: [Language: FrequencyList]
     package var personal: PersonalVocabulary {
         didSet { if personal != oldValue { cache.removeAll(keepingCapacity: true) } }
@@ -165,12 +164,11 @@ package final class Vocabulary {
     private let cacheLimit = 8192
 
     package init(
-        dictionary: any SpellingDictionary, terms: TermLexicon = TermLexicon(), slang: Set<String> = [],
+        dictionary: any SpellingDictionary, terms: TermLexicon = TermLexicon(),
         frequency: [Language: FrequencyList] = [:], personal: PersonalVocabulary = PersonalVocabulary()
     ) {
         self.dictionary = dictionary
         self.terms = terms
-        self.slang = slang
         self.frequency = frequency
         self.personal = personal
     }
@@ -178,6 +176,25 @@ package final class Vocabulary {
     package func rank(of word: String, language: Language) -> Int? {
         frequency[language]?.rank(of: word)
     }
+
+    /// Dictionary forms of a word; plugged in by the dictionary provider.
+    package var lemmatizer: ((_ word: String, _ language: Language) -> [String])?
+
+    /// How common a word is, judged by the form itself or, failing that, by its dictionary form:
+    /// «исправляем» is an everyday word because «исправлять» is, although the form itself is unlisted.
+    package func commonness(of word: String, language: Language) -> Int? {
+        if let rank = rank(of: word, language: language) { return rank }
+        if let cached = commonnessCache[CacheKey(word: word, language: language)] { return cached.rank }
+        let lemmaRank = lemmatizer?(word, language).compactMap { rank(of: $0, language: language) }.min()
+        if commonnessCache.count >= cacheLimit { commonnessCache.removeAll(keepingCapacity: true) }
+        commonnessCache[CacheKey(word: word, language: language)] = CachedRank(rank: lemmaRank)
+        return lemmaRank
+    }
+
+    private struct CachedRank {
+        let rank: Int?
+    }
+    private var commonnessCache: [CacheKey: CachedRank] = [:]
 
     /// Looks a word up exactly as typed (case matters for proper nouns).
     package func knowledge(of word: String, language: Language) -> WordKnowledge {
@@ -215,10 +232,6 @@ package final class Vocabulary {
             }
             return result
         }
-        if language == .russian, slang.contains(lower) {
-            result.isKnown = true
-            return result
-        }
         if language == .english, lower == "i" {
             result.isKnown = true
             if word == "i" { result.canonical = "I" }
@@ -233,8 +246,9 @@ package final class Vocabulary {
             result.isKnown = true
             return result
         }
-        // A proper noun typed in lower case: "андрей" → "Андрей", "monday" → "Monday".
-        if word.isAllLowercase {
+        // A proper noun typed in lower case: "андрей" → "Андрей", "monday" → "Monday". Very short
+        // words collide with chat abbreviations («оки» is not the river) and are left alone.
+        if word.isAllLowercase, word.count >= 4 {
             let capitalised = word.capitalizedFirst
             if dictionary.contains(capitalised, language: language) {
                 result.isKnown = true

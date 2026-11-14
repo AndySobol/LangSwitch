@@ -10,12 +10,12 @@ private func makeEngine(personal: PersonalVocabulary = PersonalVocabulary()) -> 
         "что",
         "сказал", "он", "придет", "дом", "котором", "живу", "знаю", "хорошо", "но", "поздно", "это", "Андрей",
         "меня",
-        "зовут", "программа", "чтобы", "успеть", "встал", "рано",
+        "зовут", "программа", "чтобы", "успеть", "встал", "рано", "не", "то", "его",
     ]
     let english = [
         "hello", "world", "the", "design", "a", "is", "and", "you", "figma", "git", "test", "receive",
         "which",
-        "apple", "car", "an", "user", "however", "we", "can", "wait", "John", "it", "works",
+        "apple", "car", "an", "user", "however", "we", "can", "wait", "John", "it", "works", "st",
     ]
     let dictionary = WordSetDictionary(english: english, russian: russian)
     let frequency: [Language: FrequencyList] = [
@@ -24,16 +24,16 @@ private func makeEngine(personal: PersonalVocabulary = PersonalVocabulary()) -> 
     ]
     let terms = TermLexicon([
         Term(canonical: "Figma", restoresCase: true), Term(canonical: "git", restoresCase: false),
-        Term(canonical: "Node.js", restoresCase: true),
+        Term(canonical: "Node.js", restoresCase: true), Term(canonical: "rb", restoresCase: false),
     ])
     let vocabulary = Vocabulary(
-        dictionary: dictionary, terms: terms, slang: ["кринж"], frequency: frequency, personal: personal)
+        dictionary: dictionary, terms: terms, frequency: frequency, personal: personal)
     let models: [Language: NGramModel] = [
         .russian: NGramModel(language: .russian, words: russian.map { ($0.lowercased(), Float(1)) }),
         .english: NGramModel(language: .english, words: english.map { ($0.lowercased(), Float(1)) }),
     ]
     return CorrectionEngine(
-        vocabulary: vocabulary, models: models, misspellings: [.english: ["teh": "the", "im": "I'm"]],
+        vocabulary: vocabulary, models: models,
         abbreviations: ["т.е.", "e.g."])
 }
 
@@ -66,7 +66,8 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
     @Test func capsLockAffectsLettersOnly() {
         let layout = KeyboardLayout.abc
         #expect(layout.character(for: KeyStroke(keyCode: 0, capsLock: true)) == "A")
-        #expect(layout.character(for: KeyStroke(keyCode: 0, shift: true, capsLock: true)) == "a")
+        // On macOS Shift does not cancel Caps Lock.
+        #expect(layout.character(for: KeyStroke(keyCode: 0, shift: true, capsLock: true)) == "A")
         #expect(layout.character(for: KeyStroke(keyCode: 18, capsLock: true)) == "1")
     }
 }
@@ -110,6 +111,7 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
 
     @Test func backspaceUndoRestoresTextAndLayout() {
         var simulator = TypingSimulator(engine: makeEngine())
+        simulator.backspaceUndoes = true
         simulator.press(keysFor: "привет ", on: .russian)
         simulator.backspace()
         #expect(simulator.document == "ghbdtn ")
@@ -161,6 +163,100 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
         #expect(simulator.document == "hello ")
     }
 
+    @Test func spaceThatSlippedByOneLetterIsRepaired() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("это н ето что ")
+        #expect(simulator.document == "это не то что ")
+        // Backspace right after it restores what was typed.
+        // Double Shift right after it restores what was typed.
+        simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("н ето ")
+        simulator.convertManually()
+        #expect(simulator.document == "н ето ")
+    }
+
+    @Test func technicalTokenDoesNotSwallowAFragment() {
+        // «ки» typed in Russian text must not become the Ruby extension "rb".
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("привет мир ки ")
+        #expect(simulator.document == "привет мир ки ")
+    }
+
+    @Test func backspaceAfterACorrectionIsJustBackspace() {
+        // Deleting the space after a converted word must not turn the word back into gibberish.
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.press(keysFor: "привет ", on: .russian)
+        simulator.backspace()
+        #expect(simulator.document == "привет")
+        simulator.press(keysFor: " мир ", on: .russian)
+        #expect(simulator.document == "привет мир ")
+    }
+
+    @Test func doubleShiftUndoesTheLastCorrection() {
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("тесст ")
+        #expect(simulator.document == "тест ")
+        simulator.convertManually()
+        #expect(simulator.document == "тесст ")
+
+        simulator = TypingSimulator(engine: makeEngine())
+        simulator.press(keysFor: "привет ", on: .russian)
+        simulator.convertManually()
+        #expect(simulator.document == "ghbdtn ")
+        #expect(simulator.current.language == .english)
+    }
+
+    @Test func extraSpacesDoNotConfuseTheCount() {
+        // "мир␣␣⌫": one space is still there; the next word must be handled on its own.
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("мир  ")
+        simulator.backspace()
+        simulator.switchLayoutSilently(to: .abc)
+        simulator.press(keysFor: "привет ", on: .russian)
+        #expect(simulator.document == "мир привет ")
+    }
+
+    @Test func erasedEarlyConversionLeavesNoTrace() {
+        // Convert early, erase the word, type another: nothing of the first decision may linger.
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.backspaceUndoes = true
+        simulator.press(keysFor: "прив", on: .russian)
+        for _ in 0..<4 { simulator.backspace() }
+        simulator.type("мир ")
+        simulator.backspace()
+        #expect(simulator.document == "мир")
+        #expect(simulator.current.language == .russian)
+    }
+
+    @Test func shortWordIsConvertedOnceTheNextWordProvesTheLayout() {
+        // «и» typed as "b" after English words is ambiguous alone; «привет» after it settles both.
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.type("hello world ")
+        simulator.press(keysFor: "и привет ", on: .russian)
+        #expect(simulator.document == "hello world и привет ")
+    }
+
+    @Test func shortRussianWordsInRussianTextStay() {
+        // «ки» reads as the Ruby extension "rb"; inside Russian text it is not Ruby.
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.type("привет мир как дела ки ")
+        #expect(simulator.document == "привет мир как дела ки ")
+        #expect(simulator.current.language == .russian)
+    }
+
+    @Test func tailTypedAfterAClickIsNotTreatedAsAWord() {
+        // The caret was placed after «красн»; the typed «ые» is a tail, not the English "st".
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.click()
+        simulator.type("ые ")
+        #expect(simulator.document == "ые ")
+        // A whole wrong-layout word after a click is still converted.
+        simulator = TypingSimulator(engine: makeEngine())
+        simulator.click()
+        simulator.press(keysFor: "привет ", on: .russian)
+        #expect(simulator.document == "привет ")
+    }
+
     @Test func manualLayoutSwitchInsideAWordDisablesCorrection() {
         var simulator = TypingSimulator(engine: makeEngine())
         simulator.press(keysFor: "при", on: .russian)
@@ -194,6 +290,7 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
 
     @Test func commaInsertionCanBeUndone() {
         var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.backspaceUndoes = true
         simulator.type("он сказал что ")
         #expect(simulator.document == "он сказал, что ")
         simulator.backspace()

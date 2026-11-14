@@ -203,6 +203,7 @@ final class AppModel {
     /// Diagnostics never include typed text: states and counts only.
     private static let log = Logger(subsystem: "io.github.andysobol.LangSwitch", category: "app")
     @ObservationIgnored private var isStartingTap = false
+    @ObservationIgnored private var lastRequestedLayout: String?
     @ObservationIgnored private var engineDiagnostics = EngineDiagnostics()
 
     /// Re-checks the permission until the keyboard tap is running. This is the only periodic work in the
@@ -400,6 +401,7 @@ final class AppModel {
         case .corrected(let replacement, let application):
             corrected(replacement, application: application)
         case .selectLayout(let id):
+            lastRequestedLayout = id
             inputSources.select(id)
             verifyLayout(id)
         case .completion(let remainder):
@@ -467,7 +469,8 @@ final class AppModel {
     private func verifyLayout(_ id: String) {
         Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(700))
-            guard let self else { return }
+            // A newer request supersedes this check.
+            guard let self, self.lastRequestedLayout == id else { return }
             // Ask the system itself rather than trusting what the last notification said.
             self.inputSources.refresh()
             self.layouts = self.inputSources.snapshot

@@ -74,12 +74,11 @@ package struct CorrectionEngine {
     private let abbreviations: Set<String>
 
     package init(
-        vocabulary: Vocabulary, models: [Language: NGramModel],
-        misspellings: [Language: [String: String]] = [:], abbreviations: Set<String> = []
+        vocabulary: Vocabulary, models: [Language: NGramModel], abbreviations: Set<String> = []
     ) {
         self.vocabulary = vocabulary
         self.decider = LayoutDecider(vocabulary: vocabulary, models: models)
-        self.speller = SpellingCorrector(vocabulary: vocabulary, misspellings: misspellings)
+        self.speller = SpellingCorrector(vocabulary: vocabulary)
         self.abbreviations = abbreviations
     }
 
@@ -104,6 +103,41 @@ package struct CorrectionEngine {
         {
             return false
         }
+        return true
+    }
+
+    /// A space that landed one letter early or late: «н ето» for «не то», «та ки» for «так и».
+    ///
+    /// Looked at only when the second word is not a word at all; both repaired words must be everyday
+    /// ones, so that an unusual but valid pair is never rearranged.
+    package func spaceSlip(previous: String, current: String, language: Language) -> (String, String)? {
+        guard options(for: previous, current, language) else { return nil }
+        let left = Array(previous.lowercased())
+        let right = Array(current.lowercased())
+        var repairs: [(String, String, Int)] = []
+        func offer(_ first: [Character], _ second: [Character]) {
+            guard !first.isEmpty, !second.isEmpty,
+                let firstRank = vocabulary.rank(of: String(first), language: language),
+                let secondRank = vocabulary.rank(of: String(second), language: language)
+            else { return }
+            repairs.append((String(first), String(second), max(firstRank, secondRank)))
+        }
+        // The space came one letter too early …
+        offer(left + [right[0]], Array(right.dropFirst()))
+        // … or one letter too late.
+        if left.count >= 2 { offer(Array(left.dropLast()), [left[left.count - 1]] + right) }
+        guard repairs.count == 1, let repair = repairs.first else { return nil }
+        return (matchCase(of: previous, to: repair.0), repair.1)
+    }
+
+    private func options(for previous: String, _ current: String, _ language: Language) -> Bool {
+        guard previous.count >= 1, previous.count <= 12, current.count >= 2, current.count <= 12,
+            previous.allSatisfy({ language.isLetter($0) }), current.allSatisfy({ language.isLetter($0) }),
+            current.isAllLowercase
+        else { return false }
+        // The second word must be meaningless as typed, and the first must not be an everyday word that
+        // simply stands before a typo.
+        if vocabulary.isKnown(current, language: language) { return false }
         return true
     }
 
@@ -147,15 +181,13 @@ package struct CorrectionEngine {
                 let word = tokens[index].text
                 let isFirst = !sawWord
                 sawWord = true
-                if options.spelling, let fixed = speller.knownMisspelling(word, language: language) {
-                    tokens[index].text = fixed
-                    kinds.insert(.spelling)
-                    hasKnownWord = true
-                    if isFirst { firstWordIsPlain = true }
-                    continue
-                }
                 let knowledge = vocabulary.knowledge(of: word, language: language)
-                if knowledge.isKnown {
+                // The dictionary accepts any pair of words joined by a hyphen («как-будто»), so a compound
+                // that is not attested in everyday use is still examined against the hyphenation rules.
+                let lenientCompound =
+                    knowledge.isKnown && knowledge.rank == nil && !knowledge.isTerm && !knowledge.isPersonal
+                    && word.contains("-")
+                if knowledge.isKnown && !lenientCompound {
                     hasKnownWord = true
                     if isFirst { firstWordIsPlain = !knowledge.isTerm && !knowledge.isPersonal }
                     if options.capitalization, let canonical = knowledge.canonical {
@@ -189,6 +221,8 @@ package struct CorrectionEngine {
                     kinds.insert(.spelling)
                     hasKnownWord = true
                     if isFirst { firstWordIsPlain = true }
+                } else if lenientCompound {
+                    hasKnownWord = true
                 }
             }
 

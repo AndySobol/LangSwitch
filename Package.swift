@@ -38,7 +38,11 @@ let package = Package(
             dependencies: ["LangSwitchCore", "LangSwitchLexicon"]
         ),
         .testTarget(name: "LangSwitchCoreTests", dependencies: ["LangSwitchCore"]),
-        .testTarget(name: "LangSwitchLexiconTests", dependencies: ["LangSwitchCore", "LangSwitchLexicon"]),
+        .testTarget(
+            name: "LangSwitchLexiconTests", dependencies: ["LangSwitchCore", "LangSwitchLexicon"],
+            // Evaluation corpora: typos and colloquial words the engine is measured on, never shipped.
+            resources: [.copy("Fixtures")]
+        ),
     ],
     swiftLanguageModes: [.v6],
     cxxLanguageStandard: .cxx14

@@ -43,13 +43,12 @@ package struct KeyboardLayout: Sendable, Equatable {
         self.reverse = reverse
     }
 
-    /// The character a key produces, honouring Caps Lock for letters only (as macOS does).
+    /// The character a key produces. Caps Lock affects letters only, and on macOS Shift does not
+    /// cancel it: Caps Lock + Shift + A is still "A".
     package func character(for stroke: KeyStroke) -> Character? {
         guard let plain = base[stroke.keyCode] else { return nil }
         let upper = shifted[stroke.keyCode] ?? plain
-        if stroke.capsLock && plain.isLetter {
-            return stroke.shift ? plain : upper
-        }
+        if stroke.capsLock && plain.isLetter { return upper }
         return stroke.shift ? upper : plain
     }
 

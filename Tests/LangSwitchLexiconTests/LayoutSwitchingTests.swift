@@ -80,6 +80,7 @@ import Testing
     @Test func backspaceRightAfterConversionRestoresTypedText() {
         let result = withRuntime { runtime -> String in
             var simulator = TypingSimulator(engine: runtime.engine, active: .abc)
+            simulator.backspaceUndoes = true
             simulator.press(keysFor: "ghbdtn ", on: .abc)
             #expect(simulator.document == "привет ")
             simulator.backspace()

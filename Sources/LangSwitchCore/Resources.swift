@@ -20,8 +20,6 @@ package enum ResourceLocator {
 package struct CoreResources: Sendable {
     package var frequency: [Language: FrequencyList] = [:]
     package var terms = TermLexicon()
-    package var slang: Set<String> = []
-    package var misspellings: [Language: [String: String]] = [:]
     package var abbreviations: Set<String> = []
     package var thesaurus: [Language: Thesaurus] = [:]
     package var trainer = TrainerContent()
@@ -48,9 +46,6 @@ package struct CoreResources: Sendable {
             let code = language.rawValue
             resources.frequency[language] = FrequencyList(
                 words: lines("Frequency/\(code).txt").map { $0.lowercased() })
-            if let table = text("Rules/misspellings-\(code).tsv") {
-                resources.misspellings[language] = SpellingCorrector.parseMisspellings(table)
-            }
             if let synonyms = text("Rules/synonyms-\(code).tsv") {
                 resources.thesaurus[language] = Thesaurus(tsv: synonyms)
             }
@@ -63,7 +58,6 @@ package struct CoreResources: Sendable {
             }
         }
         if let terms = text("Terms/terms.tsv") { resources.terms = TermLexicon(tsv: terms) }
-        resources.slang = Set(lines("Terms/slang-ru.txt").map { $0.lowercased() })
         resources.abbreviations = Set(lines("Rules/abbreviations.txt").map { $0.lowercased() })
         return resources
     }

@@ -6,7 +6,7 @@ import LangSwitchCore
 struct EngineConfig: Sendable, Equatable {
     var enabled = true
     var options = CorrectionOptions()
-    var backspaceUndoes = true
+    var backspaceUndoes = false
     var doubleShiftConverts = true
     var convertsEarly = true
     var completion = true
@@ -76,6 +76,7 @@ struct EngineDiagnostics: Sendable, Equatable {
     var removedLearnedWords = 0
     /// Times a key showed that the system was on the other layout than the engine believed.
     var layoutResyncs = 0
+    /// The system spelling service is available as a second opinion.
     /// The last decisions, described without any text: lengths, flags and outcomes only.
     var recent: [String] = []
 

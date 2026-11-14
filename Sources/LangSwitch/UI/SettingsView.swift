@@ -88,15 +88,17 @@ struct SettingsView: View {
                     SettingRow(
                         title: loc("Backspace отменяет исправление", "Backspace undoes a correction"),
                         detail: loc(
-                            "Сразу после автозамены Backspace возвращает то, что вы набрали. После двух отмен слово больше не трогается.",
-                            "Right after an automatic change Backspace restores what you typed. After two undos the word is left alone for good."
+                            "Выключено по умолчанию: удаление пробела после слова чаще правка, чем отказ. Отменить исправление всегда можно двойным Shift.",
+                            "Off by default: deleting the space after a word is usually an edit. Double Shift always undoes a correction."
                         )
                     ) { Toggle("", isOn: $model.settings.backspaceUndoes).labelsHidden() }
                     SettingRow(
-                        title: loc("Двойной Shift меняет раскладку слова", "Double Shift converts the word"),
+                        title: loc(
+                            "Двойной Shift: отменить или сменить раскладку", "Double Shift: undo or convert"),
                         detail: loc(
-                            "Быстрое двойное нажатие ⇧ перепечатывает последнее слово в другой раскладке.",
-                            "A quick double press of ⇧ re-types the last word on the other layout.")
+                            "Сразу после исправления возвращает набранное. В остальных случаях перепечатывает слово в другой раскладке. Дважды отменённая конвертация больше не повторяется.",
+                            "Right after a correction it restores what you typed; otherwise it re-types the word on the other layout. A conversion undone twice is not repeated."
+                        )
                     ) { Toggle("", isOn: $model.settings.doubleShiftConverts).labelsHidden() }
                 }
                 .disabled(!model.settings.enabled)
