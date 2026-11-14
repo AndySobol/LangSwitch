@@ -34,10 +34,16 @@ enum SnapshotRenderer {
         let model = AppModel(store: Store(folder: scratch), persistsSettings: false)
         model.start()
         for _ in 0..<100 where !model.isLoaded { try? await Task.sleep(for: .milliseconds(100)) }
+        let size = CGSize(width: 1040, height: 720)
+        // First launch, before any permission or demo data.
+        for dark in [false, true] {
+            await render(
+                RootView().environment(model), size: size,
+                to: folder.appendingPathComponent("onboarding\(dark ? "-dark" : "").png"), dark: dark)
+        }
         model.previewMode = true
         model.applyDemoData()
         model.settings.interfaceLanguage = .russian
-        let size = CGSize(width: 1040, height: 720)
 
         for dark in [false, true] {
             let suffix = dark ? "-dark" : ""
@@ -47,11 +53,6 @@ enum SnapshotRenderer {
                     RootView().environment(model), size: size,
                     to: folder.appendingPathComponent("\(item.rawValue)\(suffix).png"), dark: dark)
             }
-            model.previewMode = false
-            await render(
-                RootView().environment(model), size: size,
-                to: folder.appendingPathComponent("onboarding\(suffix).png"), dark: dark)
-            model.previewMode = true
 
             // The trainer in the middle of an exercise.
             let trainer = TrainerModel()
