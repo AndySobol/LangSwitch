@@ -73,14 +73,14 @@ private struct TrainerSetup: View {
             HStack(spacing: 14) {
                 HStack(spacing: 16) {
                     ZStack {
-                        Circle().stroke(.primary.opacity(0.08), lineWidth: 7)
+                        Circle().stroke(Theme.surfaceStrong, lineWidth: 7)
                         Circle().trim(from: 0, to: profile.levelProgress)
-                            .stroke(Theme.brand, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                            .stroke(Theme.ink, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                             .rotationEffect(.degrees(-90))
                         VStack(spacing: -2) {
                             Text("\(profile.level)").font(.system(size: 26, weight: .heavy, design: .rounded))
                             Text(loc("уровень", "level")).font(.system(size: 9, weight: .medium))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Theme.muted)
                         }
                     }
                     .frame(width: 78, height: 78)
@@ -94,18 +94,18 @@ private struct TrainerSetup: View {
                             )
                         )
                         .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.muted)
                     }
                     Spacer()
                 }
                 .card()
                 badge(
                     value: "\(profile.streakDays)", label: loc("дней подряд", "day streak"),
-                    symbol: "flame.fill", color: Theme.coral)
+                    symbol: "flame.fill", color: Theme.ink)
                 badge(
                     value: String(
                         format: "%.0f", profile.bestWPM[app.settings.trainerLanguage.rawValue] ?? 0),
-                    label: loc("рекорд, сл/мин", "best WPM"), symbol: "trophy.fill", color: Theme.amber)
+                    label: loc("рекорд, сл/мин", "best WPM"), symbol: "trophy.fill", color: Theme.ink)
             }
 
             VStack(alignment: .leading, spacing: 14) {
@@ -113,12 +113,9 @@ private struct TrainerSetup: View {
                     SectionHeader(
                         title: loc("Что тренируем", "What to practise"), symbol: "slider.horizontal.3")
                     Spacer()
-                    Picker("", selection: $app.settings.trainerLanguage) {
-                        Text("Русский").tag(Language.russian)
-                        Text("English").tag(Language.english)
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 190)
+                    CapsulePicker(
+                        selection: $app.settings.trainerLanguage,
+                        options: [(Language.russian, "Русский"), (Language.english, "English")])
                 }
                 LazyVGrid(
                     columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
@@ -132,16 +129,16 @@ private struct TrainerSetup: View {
                             HStack(spacing: 12) {
                                 Image(systemName: title(source).2)
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(selected ? .white : Theme.violet)
+                                    .foregroundStyle(selected ? Theme.onInk : Theme.ink)
                                     .frame(width: 36, height: 36)
                                     .background(
                                         selected
-                                            ? AnyShapeStyle(Theme.brand)
-                                            : AnyShapeStyle(Theme.violet.opacity(0.14)),
+                                            ? AnyShapeStyle(Theme.ink)
+                                            : AnyShapeStyle(Theme.surfaceStrong),
                                         in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                 VStack(alignment: .leading, spacing: 1) {
                                     Text(title(source).0).font(.headline)
-                                    Text(title(source).1).font(.caption).foregroundStyle(.secondary)
+                                    Text(title(source).1).font(.caption).foregroundStyle(Theme.muted)
                                 }
                                 Spacer()
                             }
@@ -152,7 +149,7 @@ private struct TrainerSetup: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(
-                                    selected ? Theme.violet.opacity(0.7) : .clear, lineWidth: 1.5)
+                                    selected ? Theme.ink.opacity(0.5) : .clear, lineWidth: 1.5)
                             )
                             .contentShape(Rectangle())
                         }
@@ -161,21 +158,18 @@ private struct TrainerSetup: View {
                 }
                 HStack(spacing: 14) {
                     if app.settings.trainerSource == .words {
-                        Text(loc("Время", "Time")).foregroundStyle(.secondary)
-                        Picker("", selection: $app.settings.trainerDuration) {
-                            ForEach([15, 30, 60, 120], id: \.self) { Text(loc("\($0) с", "\($0) s")).tag($0) }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 260)
+                        Text(loc("Время", "Time")).foregroundStyle(Theme.muted)
+                        CapsulePicker(
+                            selection: $app.settings.trainerDuration,
+                            options: [15, 30, 60, 120].map { ($0, loc("\($0) с", "\($0) s")) })
                     } else if app.settings.trainerSource == .texts {
-                        Text(loc("Сложность", "Difficulty")).foregroundStyle(.secondary)
-                        Picker("", selection: $app.settings.trainerDifficulty) {
-                            Text(loc("Лёгкая", "Easy")).tag(1)
-                            Text(loc("Средняя", "Medium")).tag(2)
-                            Text(loc("Сложная", "Hard")).tag(3)
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 300)
+                        Text(loc("Сложность", "Difficulty")).foregroundStyle(Theme.muted)
+                        CapsulePicker(
+                            selection: $app.settings.trainerDifficulty,
+                            options: [
+                                (1, loc("Лёгкая", "Easy")), (2, loc("Средняя", "Medium")),
+                                (3, loc("Сложная", "Hard")),
+                            ])
                     }
                     Spacer()
                     Button {
@@ -186,8 +180,7 @@ private struct TrainerSetup: View {
                         ).padding(.vertical, 4)
                     }
                     .controlSize(.large)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Theme.indigo)
+                    .buttonStyle(.primary)
                     .keyboardShortcut(.defaultAction)
                     .disabled(!app.isLoaded)
                 }
@@ -203,12 +196,12 @@ private struct TrainerSetup: View {
                         AreaMark(x: .value("n", item.offset), y: .value("wpm", item.element.wpm))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [Theme.violet.opacity(0.35), .clear], startPoint: .top,
+                                    colors: [Theme.ink.opacity(0.35), .clear], startPoint: .top,
                                     endPoint: .bottom)
                             )
                             .interpolationMethod(.catmullRom)
                         LineMark(x: .value("n", item.offset), y: .value("wpm", item.element.wpm))
-                            .foregroundStyle(Theme.calm)
+                            .foregroundStyle(Theme.ink)
                             .interpolationMethod(.catmullRom)
                             .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round))
                     }
@@ -230,7 +223,7 @@ private struct TrainerSetup: View {
                                 .font(.system(size: 15, weight: .bold, design: .rounded))
                                 .frame(width: 34, height: 34)
                                 .background(
-                                    Theme.coral.opacity(0.18),
+                                    Theme.surfaceStrong,
                                     in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                         }
                     }
@@ -244,7 +237,7 @@ private struct TrainerSetup: View {
         VStack(alignment: .leading, spacing: 6) {
             Image(systemName: symbol).font(.system(size: 15, weight: .semibold)).foregroundStyle(color)
             Text(value).font(.system(size: 26, weight: .heavy, design: .rounded))
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(.caption).foregroundStyle(Theme.muted)
         }
         .frame(width: 120, alignment: .leading)
         .card()
@@ -284,11 +277,11 @@ private struct WordView: View, Equatable {
                     .font(.system(size: fontSize, weight: .medium, design: .monospaced))
                     .foregroundStyle(
                         done
-                            ? (failed ? Theme.amber : Color.primary)
+                            ? (failed ? Theme.ink : Color.primary)
                             : Color.primary.opacity(current ? 0.9 : 0.32)
                     )
                     .overlay(alignment: .bottom) {
-                        if failed { Capsule().fill(Theme.coral).frame(height: 2).offset(y: 2) }
+                        if failed { Capsule().fill(Theme.danger).frame(height: 2).offset(y: 2) }
                     }
                     .anchorPreference(key: CaretKey.self, value: .bounds) { current ? $0 : nil }
             }
@@ -339,9 +332,9 @@ private struct TrainerStage: View {
                                 if let anchor {
                                     let rect = proxy[anchor]
                                     RoundedRectangle(cornerRadius: 2, style: .continuous)
-                                        .fill(Theme.brand)
+                                        .fill(Theme.ink)
                                         .frame(width: 3, height: rect.height * 0.92)
-                                        .shadow(color: Theme.violet.opacity(0.8), radius: 6)
+                                        .shadow(color: Theme.ink.opacity(0.5), radius: 6)
                                         .position(x: rect.minX - 1, y: rect.midY)
                                         .animation(
                                             reduceMotion
@@ -380,7 +373,7 @@ private struct TrainerStage: View {
             .animation(.linear(duration: 0.22), value: trainer.errorPulse)
 
             if let notice = trainer.notice {
-                Text(notice).font(.callout).foregroundStyle(.secondary)
+                Text(notice).font(.callout).foregroundStyle(Theme.muted)
             } else if session?.isStarted != true {
                 Text(
                     loc(
@@ -388,7 +381,7 @@ private struct TrainerStage: View {
                         "Start typing — the clock starts with the first key")
                 )
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
             } else {
                 Text(" ").font(.callout)
             }
@@ -402,11 +395,11 @@ private struct TrainerStage: View {
             HStack(spacing: 14) {
                 HStack(spacing: 5) {
                     KeyCap(text: "esc")
-                    Text(loc("выйти", "quit")).foregroundStyle(.secondary)
+                    Text(loc("выйти", "quit")).foregroundStyle(Theme.muted)
                 }
                 HStack(spacing: 5) {
                     KeyCap(text: "⇥")
-                    Text(loc("заново", "restart")).foregroundStyle(.secondary)
+                    Text(loc("заново", "restart")).foregroundStyle(Theme.muted)
                 }
                 Spacer()
                 Toggle(loc("Клавиатура", "Keyboard"), isOn: $showsKeyboard.animation(.snappy)).toggleStyle(
@@ -463,35 +456,35 @@ private struct TrainerStage: View {
         let combo = session?.combo ?? 0
         HStack(alignment: .center, spacing: 22) {
             metric(
-                String(format: "%.0f", session?.wpm(at: trainer.now) ?? 0), loc("сл/мин", "WPM"), Theme.indigo
+                String(format: "%.0f", session?.wpm(at: trainer.now) ?? 0), loc("сл/мин", "WPM"), Theme.ink
             )
             metric(
                 String(format: "%.0f%%", (session?.accuracy ?? 1) * 100), loc("точность", "accuracy"),
-                Theme.mint)
+                Theme.ink)
             Spacer()
             HStack(spacing: 6) {
                 Image(systemName: "flame.fill")
-                    .foregroundStyle(combo >= 20 ? AnyShapeStyle(Theme.brand) : AnyShapeStyle(.secondary))
+                    .foregroundStyle(combo >= 20 ? AnyShapeStyle(Theme.ink) : AnyShapeStyle(.secondary))
                     .symbolEffect(.bounce, value: trainer.comboPulse)
                 Text("\(combo)").font(.system(size: 26, weight: .heavy, design: .rounded)).contentTransition(
                     .numericText())
                 Text("×\(session?.multiplier ?? 1)")
                     .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.onInk)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
-                    .background(Theme.brand, in: Capsule())
+                    .background(Theme.ink, in: Capsule())
                     .opacity((session?.multiplier ?? 1) > 1 ? 1 : 0.35)
             }
             .animation(.snappy(duration: 0.18), value: combo)
             Spacer()
-            metric("\(session?.score ?? 0)", loc("очки", "score"), Theme.amber)
+            metric("\(session?.score ?? 0)", loc("очки", "score"), Theme.ink)
             if let remaining = session?.remaining(at: trainer.now) {
-                metric(String(format: "%.0f", remaining.rounded(.up)), loc("секунд", "seconds"), Theme.pink)
+                metric(String(format: "%.0f", remaining.rounded(.up)), loc("секунд", "seconds"), Theme.ink)
             }
         }
         ProgressView(value: timeProgress(session))
-            .tint(Theme.violet)
+            .tint(Theme.ink)
             .animation(.linear(duration: 0.12), value: trainer.now)
     }
 
@@ -505,7 +498,7 @@ private struct TrainerStage: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(value).font(.system(size: 30, weight: .heavy, design: .rounded)).foregroundStyle(color)
                 .contentTransition(.numericText())
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(.caption).foregroundStyle(Theme.muted)
         }
         .frame(minWidth: 70, alignment: .leading)
     }
@@ -541,7 +534,7 @@ private struct TrainerResults: View {
                         if reward?.isRecord == true {
                             Label(loc("Новый рекорд!", "New record!"), systemImage: "trophy.fill")
                                 .font(.headline)
-                                .foregroundStyle(Theme.amber)
+                                .foregroundStyle(Theme.ink)
                                 .symbolEffect(.bounce, value: appeared)
                         } else if reward?.leveledUp == true {
                             Label(
@@ -549,11 +542,11 @@ private struct TrainerResults: View {
                                 systemImage: "star.fill"
                             )
                             .font(.headline)
-                            .foregroundStyle(Theme.violet)
+                            .foregroundStyle(Theme.ink)
                         }
                         Text(String(format: "%.0f", result?.wpm ?? 0))
                             .font(.system(size: 92, weight: .heavy, design: .rounded))
-                            .foregroundStyle(Theme.brand)
+                            .foregroundStyle(Theme.ink)
                             .scaleEffect(appeared ? 1 : 0.6)
                             .opacity(appeared ? 1 : 0)
                         Text(loc("слов в минуту", "words per minute")).font(.title3).foregroundStyle(
@@ -564,12 +557,12 @@ private struct TrainerResults: View {
                     HStack(spacing: 12) {
                         tile(
                             String(format: "%.1f%%", (result?.accuracy ?? 0) * 100),
-                            loc("точность", "accuracy"), "target", Theme.mint)
-                        tile("\(result?.score ?? 0)", loc("очки", "score"), "sparkles", Theme.amber)
+                            loc("точность", "accuracy"), "target", Theme.ink)
+                        tile("\(result?.score ?? 0)", loc("очки", "score"), "sparkles", Theme.ink)
                         tile(
                             "\(result?.maxCombo ?? 0)", loc("лучшая серия", "best streak"), "flame.fill",
-                            Theme.coral)
-                        tile("+\(reward?.experience ?? 0)", loc("опыт", "XP"), "star.fill", Theme.violet)
+                            Theme.danger)
+                        tile("+\(reward?.experience ?? 0)", loc("опыт", "XP"), "star.fill", Theme.ink)
                     }
 
                     if let timeline = result?.timeline, timeline.count >= 3 {
@@ -581,12 +574,12 @@ private struct TrainerResults: View {
                                 AreaMark(x: .value("s", item.offset + 1), y: .value("wpm", item.element))
                                     .foregroundStyle(
                                         LinearGradient(
-                                            colors: [Theme.indigo.opacity(0.35), .clear], startPoint: .top,
+                                            colors: [Theme.ink.opacity(0.35), .clear], startPoint: .top,
                                             endPoint: .bottom)
                                     )
                                     .interpolationMethod(.monotone)
                                 LineMark(x: .value("s", item.offset + 1), y: .value("wpm", item.element))
-                                    .foregroundStyle(Theme.calm)
+                                    .foregroundStyle(Theme.ink)
                                     .interpolationMethod(.monotone)
                                     .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round))
                             }
@@ -609,11 +602,11 @@ private struct TrainerResults: View {
                                     VStack(spacing: 1) {
                                         Text(key == " " ? "␣" : key).font(
                                             .system(size: 16, weight: .bold, design: .rounded))
-                                        Text("×\(count)").font(.caption2).foregroundStyle(.secondary)
+                                        Text("×\(count)").font(.caption2).foregroundStyle(Theme.muted)
                                     }
                                     .frame(width: 40, height: 44)
                                     .background(
-                                        Theme.coral.opacity(0.16),
+                                        Theme.surfaceStrong,
                                         in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                                 }
                                 Spacer()
@@ -637,8 +630,7 @@ private struct TrainerResults: View {
                                 .padding(.horizontal, 14)
                         }
                         .controlSize(.large)
-                        .buttonStyle(.borderedProminent)
-                        .tint(Theme.indigo)
+                        .buttonStyle(.primary)
                         .keyboardShortcut(.defaultAction)
                     }
                     .padding(.bottom, 26)
@@ -659,7 +651,7 @@ private struct TrainerResults: View {
         VStack(spacing: 5) {
             Image(systemName: symbol).foregroundStyle(color)
             Text(value).font(.system(size: 22, weight: .bold, design: .rounded))
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(.caption).foregroundStyle(Theme.muted)
         }
         .frame(maxWidth: .infinity)
         .card(padding: 14)

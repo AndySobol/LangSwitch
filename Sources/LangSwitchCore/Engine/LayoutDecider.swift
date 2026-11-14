@@ -117,6 +117,12 @@ package struct LayoutDecider {
 
         let other = reading(of: alternative, language: alternativeLanguage)
         guard other.letters > 0 else { return .keep }
+        // The other reading must itself look like writing: "rf;lt" for a mistyped «кажде» does not.
+        if Self.hasMisplacedPunctuation(
+            typed: alternative, alternative: typed, typedLanguage: alternativeLanguage)
+        {
+            return .keep
+        }
 
         // A whole-chunk term such as "node.js" or "c++".
         let trimmed = typed.trimmingCharacters(in: CharacterSet(charactersIn: ".,!?:;()\"'"))
@@ -182,6 +188,34 @@ package struct LayoutDecider {
             return .convert
         }
         return .keep
+    }
+
+    /// Decides, while a word is still being typed, that it is clearly meant for the other layout.
+    ///
+    /// Far stricter than the decision at a word boundary, because there is less to go on: the keys must
+    /// spell the beginning of an everyday word on the other layout, and lead nowhere on the current one.
+    package func shouldConvertEarly(
+        typed: String, typedLanguage: Language, alternative: String, context: Context
+    ) -> Bool {
+        let otherLanguage = typedLanguage.other
+        guard typed.count >= 4, typed.count == alternative.count, !context.manualSwitch,
+            !context.confirms(typedLanguage), alternative.allSatisfy({ otherLanguage.isLetter($0) })
+        else { return false }
+        let own = typed.lowercased()
+        let other = alternative.lowercased()
+        if vocabulary.personal.keepAsTyped.contains(where: { $0.hasPrefix(own) }) { return false }
+        if TextProtection.isProtected(typed) { return false }
+        guard vocabulary.frequency[otherLanguage]?.hasWord(withPrefix: other) == true else { return false }
+
+        // Keys that are punctuation here and letters there ("hf,j" → «рабо») settle it.
+        guard own.allSatisfy({ typedLanguage.isLetter($0) }) else { return true }
+        // Letters only: make sure this is not the start of a real word, a term or a plausible new one.
+        if vocabulary.frequency[typedLanguage]?.hasWord(withPrefix: own) == true { return false }
+        if typedLanguage == .english, vocabulary.terms.hasTerm(withPrefix: own) { return false }
+        if vocabulary.personal.words.contains(where: { $0.lowercased().hasPrefix(own) }) { return false }
+        if vocabulary.isKnown(typed, language: typedLanguage) { return false }
+        guard let model = models[typedLanguage] else { return false }
+        return model.prefixPlausibility(of: own) < -2.5
     }
 
     /// True when `typed` has punctuation in an unnatural place that is a letter on the other layout.

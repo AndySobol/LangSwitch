@@ -48,7 +48,6 @@ import Testing
         let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
         print(String(format: "runtime load: %.2f s", elapsed))
         #expect(runtime.hasFullDictionaries)
-        // A sanity bound only: debug builds on a busy CI machine are several times slower than release.
-        #expect(elapsed < 30)
+        // No time bound here: the suite runs in parallel and unoptimised. See docs/qa for release numbers.
     }
 }

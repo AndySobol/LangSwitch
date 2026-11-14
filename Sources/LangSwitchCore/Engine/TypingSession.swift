@@ -79,6 +79,8 @@ package struct TypingSession {
     package var options = CorrectionOptions()
     /// Backspace right after an automatic correction restores what was typed.
     package var backspaceUndoes = true
+    /// Convert an obviously mistyped word after a few letters instead of waiting for the space.
+    package var convertsEarly = true
     package private(set) var layouts: Layouts
 
     private var typed: [Typed] = []
@@ -86,6 +88,8 @@ package struct TypingSession {
     private var tainted = false
     /// The user converted this chunk by hand; do not second-guess it at the boundary.
     private var manuallyConverted = false
+    /// The chunk was already converted while being typed.
+    private var earlyConverted = false
     private var history: [Committed] = []
     private var justCorrected = false
     private var sentenceStart = false
@@ -96,6 +100,9 @@ package struct TypingSession {
     }
 
     // MARK: - State visible to the application
+
+    /// Key codes of the chunk being typed (diagnostics).
+    package var currentKeyCodes: [UInt16] { typed.map(\.stroke.keyCode) }
 
     /// Text of the chunk being typed, as it appears in the field.
     package var currentText: String { String(typed.map(\.character)) }
@@ -126,6 +133,7 @@ package struct TypingSession {
         history.removeAll(keepingCapacity: true)
         tainted = false
         manuallyConverted = false
+        earlyConverted = false
         justCorrected = false
         sentenceStart = false
         if resetContext { context = LayoutDecider.Context() }
@@ -150,6 +158,30 @@ package struct TypingSession {
         }
         typed.append(Typed(stroke: stroke, character: character, layoutID: layouts.current.id))
         if typed.count > 96 { tainted = true }
+    }
+
+    /// Call after `character`: converts the chunk right away when it is clearly meant for the other
+    /// layout. `deleteCount` counts every character of the chunk, including the key just pressed.
+    package mutating func earlyConversion(engine: CorrectionEngine) -> Replacement? {
+        guard convertsEarly, options.layout, !tainted, !manuallyConverted, !earlyConverted, typed.count >= 4,
+            typed.count <= 14, let alternative = layouts.alternative
+        else { return nil }
+        let currentID = layouts.current.id
+        guard typed.allSatisfy({ $0.layoutID == currentID }) else { return nil }
+        let text = currentText
+        let strokes = typed.map(\.stroke)
+        let converted = alternative.render(strokes)
+        guard converted.count == strokes.count,
+            engine.decider.shouldConvertEarly(
+                typed: text, typedLanguage: layouts.current.language, alternative: converted, context: context
+            )
+        else { return nil }
+        typed = zip(strokes, converted).map { Typed(stroke: $0, character: $1, layoutID: alternative.id) }
+        earlyConverted = true
+        justCorrected = false
+        return Replacement(
+            deleteCount: text.count, insert: converted, switchLayoutTo: alternative.id, kinds: .layout,
+            original: text, corrected: converted)
     }
 
     /// Text arrived that was not typed key by key (paste, dictation, an accepted completion).
@@ -213,6 +245,7 @@ package struct TypingSession {
             typed.removeAll(keepingCapacity: true)
             tainted = false
             manuallyConverted = false
+            earlyConverted = false
             if history.count > 8 { history.removeFirst(history.count - 8) }
         }
         guard !typed.isEmpty else {
@@ -234,11 +267,12 @@ package struct TypingSession {
 
         if !tainted, uniform, !options.isEmpty {
             var input = ChunkInput(typed: text, typedLanguage: layouts.current.language)
-            if !manuallyConverted, let alternative = layouts.alternative {
+            if !manuallyConverted, !earlyConverted, let alternative = layouts.alternative {
                 input.alternative = alternative.render(strokes)
             }
             input.context = context
             input.sentenceStart = sentenceStart
+            input.mayOpenSentence = history.isEmpty
             input.previousWords = previousWords()
             result = engine.process(input, options: options)
         }
@@ -266,12 +300,17 @@ package struct TypingSession {
             }
         }
 
-        let corrected = output != .pass
+        // A chunk converted while it was being typed counts as corrected too: Backspace restores the
+        // original keys on the original layout.
+        let earlyOriginal = earlyConverted ? layouts.alternative : nil
+        let corrected = output != .pass || earlyOriginal != nil
         history.append(
             Committed(
                 finalText: result.text, leading: leading, boundary: boundary, strokes: strokes,
-                typedText: text, layoutBefore: layoutID,
-                layoutAfter: layoutAfter, corrected: corrected, kinds: result.kinds,
+                typedText: earlyOriginal?.render(strokes) ?? text,
+                layoutBefore: earlyOriginal?.id ?? layoutID,
+                layoutAfter: layoutAfter, corrected: corrected,
+                kinds: earlyOriginal != nil ? result.kinds.union(.layout) : result.kinds,
                 endsWithPunctuation: result.text.last.map { !$0.isLetter && !$0.isNumber } ?? true))
         justCorrected = corrected
 

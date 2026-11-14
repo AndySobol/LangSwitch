@@ -30,25 +30,28 @@ func draw(size: CGFloat) -> NSBitmapImageRep {
 
     context.saveGState()
     squircle.addClip()
+    // Black glass: a near-black body that is a little lighter towards the top.
     let colors = [
-        NSColor(red: 0.30, green: 0.32, blue: 0.98, alpha: 1).cgColor,
-        NSColor(red: 0.60, green: 0.34, blue: 0.99, alpha: 1).cgColor,
-        NSColor(red: 0.99, green: 0.36, blue: 0.62, alpha: 1).cgColor,
+        NSColor(white: 0.20, alpha: 1).cgColor,
+        NSColor(white: 0.09, alpha: 1).cgColor,
+        NSColor(white: 0.03, alpha: 1).cgColor,
     ]
-    let gradient = CGGradient(
-        colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 0.55, 1])!
-    context.drawLinearGradient(
-        gradient, start: CGPoint(x: body.minX, y: body.maxY), end: CGPoint(x: body.maxX, y: body.minY),
-        options: [])
+    let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 0.55, 1])!
+    context.drawLinearGradient(gradient, start: CGPoint(x: body.midX, y: body.maxY), end: CGPoint(x: body.midX, y: body.minY), options: [])
     // A soft highlight in the top-left corner.
     let glow = CGGradient(
         colorsSpace: CGColorSpaceCreateDeviceRGB(),
-        colors: [NSColor.white.withAlphaComponent(0.32).cgColor, NSColor.white.withAlphaComponent(0).cgColor]
+        colors: [NSColor.white.withAlphaComponent(0.16).cgColor, NSColor.white.withAlphaComponent(0).cgColor]
             as CFArray, locations: [0, 1])!
     context.drawRadialGradient(
         glow, startCenter: CGPoint(x: 330 * unit, y: 800 * unit), startRadius: 0,
         endCenter: CGPoint(x: 330 * unit, y: 800 * unit), endRadius: 520 * unit, options: [])
     context.restoreGState()
+
+    NSColor.white.withAlphaComponent(0.14).setStroke()
+    let edge = NSBezierPath(roundedRect: body.insetBy(dx: 2 * unit, dy: 2 * unit), xRadius: 184 * unit, yRadius: 184 * unit)
+    edge.lineWidth = 4 * unit
+    edge.stroke()
 
     // Two key caps: the Latin one behind, the Cyrillic one in front.
     func key(_ letter: String, center: CGPoint, side: CGFloat, alpha: CGFloat, textColor: NSColor) {
@@ -57,7 +60,7 @@ func draw(size: CGFloat) -> NSBitmapImageRep {
         context.saveGState()
         context.setShadow(
             offset: CGSize(width: 0, height: -10 * unit), blur: 26 * unit,
-            color: NSColor(red: 0.1, green: 0.05, blue: 0.4, alpha: 0.35).cgColor)
+            color: NSColor.black.withAlphaComponent(0.55).cgColor)
         NSColor.white.withAlphaComponent(alpha).setFill()
         path.fill()
         context.restoreGState()
@@ -74,7 +77,7 @@ func draw(size: CGFloat) -> NSBitmapImageRep {
         textColor: NSColor.white.withAlphaComponent(0.95))
     key(
         "Я", center: CGPoint(x: 610 * unit, y: 420 * unit), side: 380 * unit, alpha: 1,
-        textColor: NSColor(red: 0.42, green: 0.30, blue: 0.96, alpha: 1))
+        textColor: NSColor(white: 0.06, alpha: 1))
 
     NSGraphicsContext.restoreGraphicsState()
     return bitmap

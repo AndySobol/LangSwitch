@@ -88,6 +88,35 @@ import Testing
         #expect(result == "ghbdtn ")
     }
 
+    @Test func obviousWordsAreConvertedBeforeTheSpace() {
+        withRuntime { runtime in
+            var simulator = TypingSimulator(engine: runtime.engine, active: .abc)
+            simulator.press(keysFor: "прив", on: .russian)
+            #expect(simulator.document == "прив")
+            #expect(simulator.current.language == .russian)
+            simulator.press(keysFor: "ет как дела ", on: .russian)
+            #expect(simulator.document == "привет как дела ")
+            #expect(simulator.replacements.count == 1)
+
+            // English on the Russian layout, and a word with a "punctuation" letter.
+            simulator = TypingSimulator(engine: runtime.engine, active: .russian)
+            simulator.press(keysFor: "plea", on: .abc)
+            #expect(simulator.document == "plea")
+            simulator = TypingSimulator(engine: runtime.engine, active: .abc)
+            simulator.press(keysFor: "рабо", on: .russian)
+            #expect(simulator.document == "рабо")
+        }
+    }
+
+    @Test(arguments: ["ghost", "rhythm", "html", "kubectl", "nginx", "sobolev", "xcode", "figma", "strength"])
+    func latinWordsAreNotConvertedEarly(word: String) {
+        withRuntime { runtime in
+            var simulator = TypingSimulator(engine: runtime.engine, active: .abc)
+            simulator.press(keysFor: word, on: .abc)
+            #expect(simulator.document == word)
+        }
+    }
+
     @Test func manualConversionTogglesTheLastWord() {
         withRuntime { runtime in
             var simulator = TypingSimulator(engine: runtime.engine, active: .abc)

@@ -115,7 +115,7 @@ struct NotchView: View {
             HStack(spacing: 9) {
                 Image(systemName: record.isUndo ? "arrow.uturn.backward" : Theme.symbol(for: record.kinds))
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(record.isUndo ? Theme.amber : Theme.color(for: record.kinds))
+                    .foregroundStyle(record.isUndo ? Theme.ink : Theme.ink)
                     .symbolEffect(.bounce, value: record.id)
                 Text(record.original)
                     .strikethrough(!record.isUndo, color: .white.opacity(0.5))
@@ -128,7 +128,7 @@ struct NotchView: View {
             .lineLimit(1)
         case .message(let symbol, let text):
             HStack(spacing: 8) {
-                Image(systemName: symbol).font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.violet)
+                Image(systemName: symbol).font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.ink)
                 Text(text).foregroundStyle(.white)
             }
             .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -136,7 +136,7 @@ struct NotchView: View {
         case .completion(let remainder, let key):
             HStack(spacing: 8) {
                 Image(systemName: "sparkles").font(.system(size: 11, weight: .bold)).foregroundStyle(
-                    Theme.mint)
+                    Theme.ink)
                 Text("…" + remainder).foregroundStyle(.white.opacity(0.75))
                 Text(key)
                     .font(.system(size: 10, weight: .bold, design: .rounded))

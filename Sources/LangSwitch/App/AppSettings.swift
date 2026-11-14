@@ -33,6 +33,7 @@ struct AppSettings: Codable, Sendable, Equatable {
     var fixesCapitalization = true
     var backspaceUndoes = true
     var doubleShiftConverts = true
+    var convertsEarly = true
 
     var completion = true
     var completionMinimumPrefix = 3
@@ -82,6 +83,7 @@ struct AppSettings: Codable, Sendable, Equatable {
         fixesCapitalization = value(.fixesCapitalization, defaults.fixesCapitalization)
         backspaceUndoes = value(.backspaceUndoes, defaults.backspaceUndoes)
         doubleShiftConverts = value(.doubleShiftConverts, defaults.doubleShiftConverts)
+        convertsEarly = value(.convertsEarly, defaults.convertsEarly)
         completion = value(.completion, defaults.completion)
         completionMinimumPrefix = value(.completionMinimumPrefix, defaults.completionMinimumPrefix)
         completionAcceptKey = value(.completionAcceptKey, defaults.completionAcceptKey)
@@ -114,6 +116,7 @@ struct AppSettings: Codable, Sendable, Equatable {
             capitalization: fixesCapitalization)
         config.backspaceUndoes = backspaceUndoes
         config.doubleShiftConverts = doubleShiftConverts
+        config.convertsEarly = convertsEarly
         config.completion = completion
         config.completionMinimumPrefix = completionMinimumPrefix
         config.completionAcceptKey = completionAcceptKey.keyCode

@@ -140,14 +140,14 @@ final class TrainerModel {
             let combo = session.combo
             let tier: [Color] =
                 combo >= 60
-                ? [Theme.pink, Theme.amber, .white]
-                : combo >= 20 ? [Theme.violet, Theme.mint] : [Theme.indigo, Theme.violet]
+                ? [Theme.ink, Theme.ink, .white]
+                : combo >= 20 ? [Theme.ink, Theme.ink] : [Theme.ink, Theme.ink]
             particles.burst(
                 at: caretPoint, count: combo >= 20 ? 4 : 2, colors: tier, speed: 40...150, size: 1.5...3.5)
             if combo > 0, combo % 25 == 0 {
                 comboPulse += 1
                 particles.burst(
-                    at: caretPoint, count: 28, colors: [Theme.amber, Theme.pink, Theme.mint, .white],
+                    at: caretPoint, count: 28, colors: [Theme.ink, Theme.ink, Theme.ink, .white],
                     speed: 120...360, size: 2.5...6)
             }
             if feedback == .finished { finish() }
@@ -174,6 +174,6 @@ final class TrainerModel {
             return
         }
         particles.confetti(
-            width: width, colors: [Theme.indigo, Theme.violet, Theme.pink, Theme.mint, Theme.amber])
+            width: width, colors: [Theme.ink, Theme.ink, Theme.ink, Theme.ink, Theme.ink])
     }
 }

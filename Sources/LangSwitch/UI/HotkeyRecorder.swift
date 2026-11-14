@@ -21,8 +21,8 @@ struct HotkeyRecorder: View {
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .frame(minWidth: 120)
             }
-            .buttonStyle(.bordered)
-            .tint(isRecording ? Theme.pink : nil)
+            .buttonStyle(.secondary)
+            .tint(isRecording ? Theme.ink : nil)
             if model.settings.hotkey(for: action) != nil {
                 Button {
                     // An invalid shortcut marks "cleared on purpose", as opposed to "use the default".
@@ -31,7 +31,7 @@ struct HotkeyRecorder: View {
                     Image(systemName: "xmark.circle.fill")
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
                 .help(loc("Убрать сочетание", "Remove shortcut"))
             }
         }

@@ -7,14 +7,12 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 26) {
             Spacer(minLength: 20)
-            ZStack {
-                RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Theme.brand).frame(
-                    width: 96, height: 96
-                )
-                .shadow(color: Theme.violet.opacity(0.45), radius: 24, y: 10)
-                Image(systemName: "keyboard.fill").font(.system(size: 40, weight: .semibold)).foregroundStyle(
-                    .white)
-            }
+            Image(systemName: "keyboard")
+                .font(.system(size: 34, weight: .medium))
+                .foregroundStyle(Theme.ink)
+                .frame(width: 84, height: 84)
+                .background(Theme.surfaceStrong, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Theme.hairline))
             VStack(spacing: 8) {
                 Text(loc("Пишите, не думая о раскладке", "Type without thinking about the layout"))
                     .font(.system(size: 30, weight: .bold, design: .rounded))
@@ -25,7 +23,7 @@ struct OnboardingView: View {
                         "LangSwitch fixes the layout, typos and punctuation as you type, in every application. Everything runs on this Mac, offline."
                     )
                 )
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 520)
             }
@@ -40,12 +38,10 @@ struct OnboardingView: View {
                     )
                 ) {
                     if model.isTrusted {
-                        Label(loc("Готово", "Done"), systemImage: "checkmark.circle.fill").foregroundStyle(
-                            Theme.mint)
+                        Text(loc("Готово", "Done")).font(.callout).foregroundStyle(Theme.muted)
                     } else {
                         Button(loc("Открыть настройки", "Open Settings")) { model.requestAccessibility() }
-                            .buttonStyle(.borderedProminent)
-                            .tint(Theme.violet)
+                            .buttonStyle(.primary)
                     }
                 }
                 Divider()
@@ -60,8 +56,7 @@ struct OnboardingView: View {
                         )
                 ) {
                     if model.hasBothLayouts {
-                        Label(loc("Готово", "Done"), systemImage: "checkmark.circle.fill").foregroundStyle(
-                            Theme.mint)
+                        Text(loc("Готово", "Done")).font(.callout).foregroundStyle(Theme.muted)
                     }
                 }
             }
@@ -74,8 +69,7 @@ struct OnboardingView: View {
                 Text(loc("Начать", "Get started")).frame(width: 180)
             }
             .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .tint(Theme.indigo)
+            .buttonStyle(.primary)
             .disabled(!model.isTrusted)
 
             if !model.isTrusted {
@@ -85,7 +79,7 @@ struct OnboardingView: View {
                         "This window updates by itself once the switch is turned on in System Settings.")
                 )
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
             }
             Spacer(minLength: 20)
         }
@@ -97,14 +91,24 @@ struct OnboardingView: View {
         _ number: Int, done: Bool, title: String, detail: String, @ViewBuilder trailing: () -> Trailing
     ) -> some View {
         HStack(alignment: .center, spacing: 14) {
-            Text("\(number)")
-                .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .frame(width: 28, height: 28)
-                .background(done ? AnyShapeStyle(Theme.mint) : AnyShapeStyle(Theme.calm), in: Circle())
+            Group {
+                if done {
+                    Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(
+                        Theme.onInk
+                    )
+                    .frame(width: 26, height: 26)
+                    .background(Theme.ink, in: Circle())
+                } else {
+                    Text("\(number)")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Theme.ink)
+                        .frame(width: 26, height: 26)
+                        .overlay(Circle().strokeBorder(Theme.faint, lineWidth: 1.2))
+                }
+            }
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.headline)
-                Text(detail).font(.callout).foregroundStyle(.secondary).fixedSize(
+                Text(detail).font(.callout).foregroundStyle(Theme.muted).fixedSize(
                     horizontal: false, vertical: true)
             }
             Spacer(minLength: 10)

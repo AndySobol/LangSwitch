@@ -69,29 +69,29 @@ struct ApplicationsView: View {
                     )
                 )
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
 
                 ForEach($model.settings.applicationRules) { $rule in
                     HStack(spacing: 10) {
                         Image(nsImage: icon(rule.bundleID)).resizable().frame(width: 26, height: 26)
                         VStack(alignment: .leading, spacing: 0) {
                             Text(rule.name)
-                            Text(rule.bundleID).font(.caption2).foregroundStyle(.tertiary)
+                            Text(rule.bundleID).font(.caption2).foregroundStyle(Theme.faint)
                         }
                         Spacer()
-                        Picker("", selection: $rule.mode) {
-                            Text(loc("Только раскладка", "Layout only")).tag(ApplicationRule.Mode.layoutOnly)
-                            Text(loc("Выключено", "Off")).tag(ApplicationRule.Mode.off)
-                        }
-                        .labelsHidden()
-                        .frame(width: 170)
+                        CapsulePicker(
+                            selection: $rule.mode,
+                            options: [
+                                (ApplicationRule.Mode.layoutOnly, loc("Только раскладка", "Layout only")),
+                                (ApplicationRule.Mode.off, loc("Выключено", "Off")),
+                            ])
                         Button {
                             model.settings.applicationRules.removeAll { $0.bundleID == rule.bundleID }
                         } label: {
                             Image(systemName: "trash")
                         }
                         .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.muted)
                     }
                     .padding(.vertical, 3)
                 }
@@ -99,7 +99,7 @@ struct ApplicationsView: View {
             .card()
 
             HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "lock.shield.fill").foregroundStyle(Theme.mint)
+                Image(systemName: "lock.shield.fill").foregroundStyle(Theme.ink)
                 Text(
                     loc(
                         "Поля с паролями защищает сама macOS: пока активен защищённый ввод, нажатия клавиш не видит ни одна программа, включая LangSwitch.",
@@ -107,7 +107,7 @@ struct ApplicationsView: View {
                     )
                 )
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
             }
             .card()
         }

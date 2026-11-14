@@ -27,18 +27,18 @@ struct SuggestionPopupView: View {
 
     private func color(_ kind: WordSuggestion.Kind) -> Color {
         switch kind {
-        case .spelling: Theme.mint
-        case .layout: Theme.indigo
-        case .form: Theme.amber
-        case .synonym: Theme.violet
-        case .capitalization: Theme.pink
+        case .spelling: Theme.ink
+        case .layout: Theme.ink
+        case .form: Theme.ink
+        case .synonym: Theme.ink
+        case .capitalization: Theme.ink
         }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
-                Image(systemName: "sparkles").foregroundStyle(Theme.violet)
+                Image(systemName: "sparkles").foregroundStyle(Theme.ink)
                 Text(state.word).fontWeight(.semibold).lineLimit(1)
                 Spacer()
                 KeyCap(text: "esc")
@@ -55,7 +55,7 @@ struct SuggestionPopupView: View {
                     HStack(spacing: 8) {
                         Text(index < 9 ? "\(index + 1)" : "·")
                             .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.muted)
                             .frame(width: 12)
                         Text(suggestion.text).font(.system(size: 13, weight: .medium)).lineLimit(1)
                         Spacer(minLength: 12)
@@ -67,7 +67,7 @@ struct SuggestionPopupView: View {
                     .padding(.vertical, 5)
                     .background(
                         index == state.selected
-                            ? AnyShapeStyle(Theme.indigo.opacity(0.22)) : AnyShapeStyle(.clear),
+                            ? AnyShapeStyle(Theme.surfaceStrong) : AnyShapeStyle(.clear),
                         in: RoundedRectangle(cornerRadius: 7, style: .continuous)
                     )
                     .contentShape(Rectangle())

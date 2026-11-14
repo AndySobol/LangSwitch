@@ -58,6 +58,7 @@ package struct TypingSimulator {
                 }
                 session.character(stroke, produced: produced)
                 document.append(produced)
+                convertEarlyIfNeeded()
             }
         }
     }
@@ -70,8 +71,14 @@ package struct TypingSimulator {
             } else if let stroke = current.stroke(for: character) {
                 session.character(stroke, produced: character)
                 document.append(character)
+                convertEarlyIfNeeded()
             }
         }
+    }
+
+    private mutating func convertEarlyIfNeeded() {
+        guard let replacement = session.earlyConversion(engine: engine) else { return }
+        _ = apply(.replace(replacement, swallowKey: true))
     }
 
     package mutating func boundary(_ boundary: Boundary) {

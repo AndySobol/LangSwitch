@@ -42,6 +42,8 @@ final class InputEngine {
     private var counters = TypingCounters()
     private var collector = PhraseCollector()
     private var flushScheduled = false
+    private var diagnostics = EngineDiagnostics()
+    private let tracing = ProcessInfo.processInfo.environment["LANGSWITCH_TRACE"] == "1"
 
     private var tap: CFMachPort?
     private var tapSource: CFRunLoopSource?
@@ -135,6 +137,7 @@ final class InputEngine {
             session?.layoutsChanged(layouts, byUser: byUser)
         }
         if byUser { hideCompletion() }
+        if byUser { diagnostics.layoutChangesByUser += 1 } else { diagnostics.layoutChangesByApp += 1 }
     }
 
     func setApplication(_ application: FrontApplication) {
@@ -182,6 +185,10 @@ final class InputEngine {
         flushScheduled = false
         emit(.learning(learning, counters))
         counters = TypingCounters()
+        diagnostics.currentLayout = session?.layouts.current.id ?? "none"
+        diagnostics.alternativeLayout = session?.layouts.alternative?.id ?? "none"
+        diagnostics.hasSession = session != nil
+        emit(.diagnostics(diagnostics))
     }
 
     // MARK: - State helpers
@@ -212,6 +219,7 @@ final class InputEngine {
         }
         session?.options = options
         session?.backspaceUndoes = config.backspaceUndoes
+        session?.convertsEarly = config.convertsEarly
     }
 
     private func scheduleFlush() {
@@ -414,6 +422,9 @@ final class InputEngine {
             }
             session?.character(stroke, produced: produced)
             counters.characters += 1
+            diagnostics.keys += 1
+            scheduleFlush()
+            if convertEarly(runtime, proxy) { return true }
             updateCompletion()
             return false
         }
@@ -425,8 +436,21 @@ final class InputEngine {
         guard var session else { return false }
         let typed = session.currentText
         let previous = session.previousWord
+        if !typed.isEmpty {
+            diagnostics.boundaries += 1
+            if session.isTainted { diagnostics.taintedChunks += 1 }
+            if session.layouts.alternative == nil { diagnostics.chunksWithoutAlternative += 1 }
+        }
+        let keyCodes = tracing ? session.currentKeyCodes : []
+        let alternative =
+            tracing ? session.layouts.alternative?.render(keyCodes.map { KeyStroke(keyCode: $0) }) : nil
         let (output, result) = session.boundary(boundary, engine: runtime.engine)
         self.session = session
+        if tracing, !typed.isEmpty {
+            diagnostics.trace =
+                "typed=\(typed) keys=\(keyCodes) alternative=\(alternative ?? "nil") result=\(result?.text ?? "nil") "
+                + "kinds=\(result?.kinds.rawValue ?? -1)"
+        }
         if let result {
             learn(from: result, typed: typed, previous: previous, boundary: boundary, runtime: runtime)
         }
@@ -448,7 +472,14 @@ final class InputEngine {
         // An inline suggestion is selected (address bars): Backspace would eat it instead of our text.
         if let selected = Accessibility.selectionLength(), selected > 0 {
             session?.interrupt()
+            diagnostics.skippedBecauseOfSelection += 1
+            scheduleFlush()
             return false
+        }
+        if replacement.kinds.contains(.layout) {
+            diagnostics.layoutConversions += 1
+        } else {
+            diagnostics.otherCorrections += 1
         }
         injector.apply(replacement, proxy: proxy)
         if let event, let copy = event.copy() {
@@ -489,6 +520,30 @@ final class InputEngine {
         }
         runtime?.vocabulary.personal = learning.vocabulary
         scheduleFlush()
+    }
+
+    /// Converts the word being typed without waiting for the boundary, when the session is sure.
+    /// Returns true when the key that triggered it was consumed.
+    private func convertEarly(_ runtime: LanguageRuntime, _ proxy: CGEventTapProxy) -> Bool {
+        guard var candidate = session, let replacement = candidate.earlyConversion(engine: runtime.engine)
+        else {
+            return false
+        }
+        if let selected = Accessibility.selectionLength(), selected > 0 {
+            diagnostics.skippedBecauseOfSelection += 1
+            return false
+        }
+        session = candidate
+        hideCompletion()
+        diagnostics.layoutConversions += 1
+        // The key that tipped the decision has not reached the application yet, so one character fewer
+        // is on screen than the session has counted.
+        injector.backspace(replacement.deleteCount - 1, proxy: proxy)
+        injector.type(replacement.insert, proxy: proxy)
+        if let id = replacement.switchLayoutTo { switchLayout(to: id) }
+        lastAutoConversion = (replacement.original, replacement.corrected)
+        emit(.corrected(replacement, application: application.name))
+        return true
     }
 
     // MARK: - Learning and completion

@@ -161,6 +161,8 @@ final class AppModel {
 
     /// Checks Accessibility access and starts the keyboard tap once it is granted.
     func refreshTrust() {
+        // The snapshot renderer shows demo data; the real permission state would overwrite it.
+        guard !previewMode else { return }
         let trusted = Accessibility.isTrusted
         let changed = trusted != isTrusted
         isTrusted = trusted
@@ -183,16 +185,17 @@ final class AppModel {
     private func writeDiagnostics() {
         let version =
             Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
-        let lines = [
-            "version: \(version)",
-            "updated: \(Date().formatted(.iso8601))",
-            "engineLoaded: \(isLoaded)",
-            "accessibilityTrusted: \(Accessibility.isTrusted)",
-            "keyboardTapRunning: \(isRunning)",
-            "layouts: \(layouts.layouts.map(\.id).joined(separator: ", "))",
-            "currentLayout: \(layouts.currentID ?? "none")",
-            "enabled: \(settings.enabled)",
-        ]
+        let lines =
+            [
+                "version: \(version)",
+                "updated: \(Date().formatted(.iso8601))",
+                "engineLoaded: \(isLoaded)",
+                "accessibilityTrusted: \(Accessibility.isTrusted)",
+                "keyboardTapRunning: \(isRunning)",
+                "layouts: \(layouts.layouts.map(\.id).joined(separator: ", "))",
+                "currentLayout: \(layouts.currentID ?? "none")",
+                "enabled: \(settings.enabled)",
+            ] + engineDiagnostics.lines
         let url = store.folder.appendingPathComponent("diagnostics.txt")
         try? lines.joined(separator: "\n").appending("\n").write(to: url, atomically: true, encoding: .utf8)
     }
@@ -200,6 +203,7 @@ final class AppModel {
     /// Diagnostics never include typed text: states and counts only.
     private static let log = Logger(subsystem: "io.github.andysobol.LangSwitch", category: "app")
     @ObservationIgnored private var isStartingTap = false
+    @ObservationIgnored private var engineDiagnostics = EngineDiagnostics()
 
     /// Re-checks the permission until the keyboard tap is running. This is the only periodic work in the
     /// application, and it exists only while the permission is missing.
@@ -420,6 +424,9 @@ final class AppModel {
                 }
             }
             scheduleSave()
+        case .diagnostics(let diagnostics):
+            engineDiagnostics = diagnostics
+            writeDiagnostics()
         case .learnedWord(let word):
             if settings.showsHUD {
                 hud.show(

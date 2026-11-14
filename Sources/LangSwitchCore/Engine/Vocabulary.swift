@@ -45,10 +45,17 @@ package struct Term: Sendable, Equatable {
 
 package struct TermLexicon: Sendable {
     private let terms: [String: Term]
+    private let sortedKeys: [String]
 
     package init(_ terms: [Term] = []) {
         self.terms = Dictionary(
             terms.map { ($0.canonical.lowercased(), $0) }, uniquingKeysWith: { first, _ in first })
+        sortedKeys = self.terms.keys.sorted()
+    }
+
+    /// True when some term starts with `prefix` (lower case).
+    package func hasTerm(withPrefix prefix: String) -> Bool {
+        SortedPrefixSearch.contains(prefix: prefix, in: sortedKeys)
     }
 
     /// Parses `canonical<TAB>cap|keep` lines.
@@ -68,9 +75,23 @@ package struct TermLexicon: Sendable {
 }
 
 /// Word frequency ranks: 0 is the most frequent word of the language.
+/// Binary search for "is any element prefixed by this string" in a sorted array.
+enum SortedPrefixSearch {
+    static func contains(prefix: String, in sorted: [String]) -> Bool {
+        var low = 0
+        var high = sorted.count
+        while low < high {
+            let middle = (low + high) / 2
+            if sorted[middle] < prefix { low = middle + 1 } else { high = middle }
+        }
+        return low < sorted.count && sorted[low].hasPrefix(prefix)
+    }
+}
+
 package struct FrequencyList: Sendable {
     package let words: [String]
     private let ranks: [String: Int]
+    private let sorted: [String]
 
     package init(words: [String] = []) {
         self.words = words
@@ -78,6 +99,12 @@ package struct FrequencyList: Sendable {
         ranks.reserveCapacity(words.count)
         for (index, word) in words.enumerated() where ranks[word] == nil { ranks[word] = index }
         self.ranks = ranks
+        self.sorted = words.sorted()
+    }
+
+    /// True when some listed word starts with `prefix` (lower case).
+    package func hasWord(withPrefix prefix: String) -> Bool {
+        SortedPrefixSearch.contains(prefix: prefix, in: sorted)
     }
 
     package init(text: String) {

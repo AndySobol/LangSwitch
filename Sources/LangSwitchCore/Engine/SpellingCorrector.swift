@@ -21,6 +21,11 @@ package struct SpellingCorrector {
         .english: ["a": ["e"], "e": ["a", "i"], "i": ["e", "y"], "y": ["i"]],
     ]
 
+    /// Fast typists drop letters and swap neighbours; a stray extra letter is rare unless it is a doubled
+    /// one. So "the typo has a letter too many" costs more than the automatic threshold: such readings
+    /// are offered in the list of alternatives but never applied on their own.
+    private static let strayLetterCost: Float = 1.75
+
     package init(vocabulary: Vocabulary, misspellings: [Language: [String: String]] = [:]) {
         self.vocabulary = vocabulary
         self.misspellings = misspellings
@@ -92,7 +97,7 @@ package struct SpellingCorrector {
             let doubled =
                 index > 0 && word[index] == word[index - 1]
                 || index + 1 < count && word[index] == word[index + 1]
-            result.append((String(copy), doubled ? 1.0 : 1.3))
+            result.append((String(copy), doubled ? 1.0 : Self.strayLetterCost))
         }
         for index in 0..<count {
             for replacement in adjacency[language]?[word[index]] ?? [] {
@@ -108,7 +113,7 @@ package struct SpellingCorrector {
         }
         if allowInsertions {
             for index in 0...count {
-                for letter in language.alphabet {
+                for letter in language.alphabet where letter != "ё" {
                     var copy = word
                     copy.insert(letter, at: index)
                     let doubling =
@@ -162,27 +167,42 @@ package struct SpellingCorrector {
     }
 
     /// A replacement that is safe to apply without asking, or nil.
-    package func autoCorrection(for word: String, language: Language) -> String? {
+    ///
+    /// - Parameter capitalIsOrdinary: the word opens a sentence, so its capital letter does not suggest
+    ///   a proper name.
+    package func autoCorrection(for word: String, language: Language, capitalIsOrdinary: Bool = false)
+        -> String?
+    {
         if let fixed = knownMisspelling(word, language: language) { return fixed }
         guard word.count >= 3, word.count <= 24 else { return nil }
         // Mixed case such as "iPhone" or "SwiftUI" is deliberate.
         guard word.isAllLowercase || word.isCapitalized || word.isAllUppercase else { return nil }
         let found = candidates(for: word, language: language)
         guard let best = found.first else { return nil }
-        let runnerUp = found.dropFirst().first
 
-        let threshold: Float
-        if word.count == 3 {
-            threshold = 0.55  // only a swap or doubled letter that yields a very common word
-        } else if word.isCapitalized || word.isAllUppercase {
-            threshold = 0.85  // may be a name: require a frequent word
-        } else if word.count == 4 {
-            threshold = 1.0
-        } else {
-            threshold = 1.2
+        // The longer the word, the less likely a single edit lands on another word by accident, so
+        // longer words may use costlier edits (a dropped letter, a slip to the next key).
+        var threshold: Float
+        switch word.count {
+        case 3: threshold = 0.55
+        case 4: threshold = 1.0
+        case 5: threshold = 1.25
+        // Enough for a dropped letter; replacing a letter needs a frequent target on top of that.
+        default: threshold = 1.42
+        }
+        // A capital inside a sentence usually marks a name: only the cheapest edits to frequent words.
+        if !word.isAllLowercase, !(capitalIsOrdinary && word.isCapitalized) {
+            threshold = min(threshold, 0.9)
         }
         guard best.score <= threshold else { return nil }
-        if let runnerUp, runnerUp.score - best.score < 0.25 { return nil }
+        // Two equally good readings ("слове" / "свое") are a question for the user, not a guess.
+        if let runnerUp = found.dropFirst().first {
+            // An everyday word beats an obscure one almost on its own.
+            let bestIsCommon = vocabulary.rank(of: best.word, language: language) != nil
+            let runnerUpIsCommon = vocabulary.rank(of: runnerUp.word, language: language) != nil
+            let required: Float = bestIsCommon && !runnerUpIsCommon ? 0.05 : 0.15
+            if runnerUp.score - best.score < required { return nil }
+        }
         return matchCase(of: word, to: best.word)
     }
 }

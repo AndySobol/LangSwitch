@@ -14,6 +14,7 @@ final class StatusItemController: NSObject {
         self.model = model
         super.init()
         popover.behavior = .transient
+        popover.appearance = NSAppearance(named: .darkAqua)
         popover.animates = true
         popover.contentViewController = NSHostingController(
             rootView: MenuPanel(close: { [weak self] in self?.popover.performClose(nil) }).environment(model))
@@ -84,18 +85,15 @@ struct MenuPanel: View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.brand)
-                    Image(systemName: "keyboard.fill").font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 34, height: 34)
+                Image(systemName: "keyboard").font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Theme.ink)
+                    .glyphTile(size: 34, radius: 9)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("LangSwitch").font(.headline)
-                    Text(status).font(.caption).foregroundStyle(.secondary)
+                    Text(status).font(.caption).foregroundStyle(Theme.muted)
                 }
                 Spacer()
-                Toggle("", isOn: $model.settings.enabled).toggleStyle(.switch).labelsHidden()
+                Toggle("", isOn: $model.settings.enabled).toggleStyle(.mono).labelsHidden()
             }
 
             if !model.isTrusted {
@@ -110,14 +108,13 @@ struct MenuPanel: View {
                     .font(.caption)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.amber)
+                .buttonStyle(.primary)
             }
 
             HStack(spacing: 8) {
-                tile(loc("Слов", "Words"), model.statistics.today.words, Theme.indigo)
-                tile(loc("Раскладка", "Layout"), model.statistics.today.layoutFixes, Theme.violet)
-                tile(loc("Опечатки", "Typos"), model.statistics.today.spellingFixes, Theme.mint)
+                tile(loc("Слов", "Words"), model.statistics.today.words, Theme.ink)
+                tile(loc("Раскладка", "Layout"), model.statistics.today.layoutFixes, Theme.ink)
+                tile(loc("Опечатки", "Typos"), model.statistics.today.spellingFixes, Theme.ink)
             }
 
             VStack(spacing: 6) {
@@ -126,16 +123,16 @@ struct MenuPanel: View {
                 Toggle(loc("Пунктуация", "Punctuation"), isOn: $model.settings.fixesPunctuation)
                 Toggle(loc("Автодополнение", "Autocomplete"), isOn: $model.settings.completion)
             }
-            .toggleStyle(.switch)
+            .toggleStyle(.monoRow)
             .controlSize(.small)
             .disabled(!model.settings.enabled)
 
             if let last = model.recent.first {
                 HStack(spacing: 6) {
                     Image(systemName: Theme.symbol(for: last.kinds)).foregroundStyle(
-                        Theme.color(for: last.kinds))
-                    Text(last.original).strikethrough().foregroundStyle(.secondary)
-                    Image(systemName: "arrow.right").font(.caption2).foregroundStyle(.tertiary)
+                        Theme.ink)
+                    Text(last.original).strikethrough().foregroundStyle(Theme.muted)
+                    Image(systemName: "arrow.right").font(.caption2).foregroundStyle(Theme.faint)
                     Text(last.corrected)
                 }
                 .font(.caption)
@@ -165,6 +162,10 @@ struct MenuPanel: View {
         }
         .padding(14)
         .frame(width: 300)
+        .buttonStyle(.secondary)
+        .foregroundStyle(Theme.ink)
+        .background(Color.black.opacity(0.35))
+        .preferredColorScheme(.dark)
     }
 
     private var status: String {
@@ -178,10 +179,11 @@ struct MenuPanel: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(value)").font(.system(size: 18, weight: .bold, design: .rounded)).contentTransition(
                 .numericText())
-            Text(title).font(.caption2).foregroundStyle(.secondary)
+            Text(title).font(.caption2).foregroundStyle(Theme.muted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
-        .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .background(Theme.surface, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Theme.hairline))
     }
 }

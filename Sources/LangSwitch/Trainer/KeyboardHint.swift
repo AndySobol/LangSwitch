@@ -29,7 +29,7 @@ struct KeyboardHint: View {
         }
     }
     private static let fingerColors: [Color] = [
-        Theme.pink, Theme.amber, Theme.mint, Theme.indigo, Theme.indigo, Theme.mint, Theme.amber, Theme.pink,
+        Theme.ink, Theme.ink, Theme.ink, Theme.ink, Theme.ink, Theme.ink, Theme.ink, Theme.ink,
     ]
 
     var body: some View {
@@ -40,7 +40,7 @@ struct KeyboardHint: View {
                 HStack(spacing: 5) {
                     if row == 3 {
                         key(
-                            label: "⇧", width: unit * 2.35, color: Theme.violet, active: target?.shift == true
+                            label: "⇧", width: unit * 2.35, color: Theme.ink, active: target?.shift == true
                         )
                     } else {
                         Spacer().frame(width: Self.indents[row] * unit * 0.62)
@@ -55,17 +55,19 @@ struct KeyboardHint: View {
                     }
                     if row == 3 {
                         key(
-                            label: "⇧", width: unit * 2.35, color: Theme.violet, active: target?.shift == true
+                            label: "⇧", width: unit * 2.35, color: Theme.ink, active: target?.shift == true
                         )
                     }
                 }
             }
             HStack {
                 Spacer()
-                key(label: "", width: unit * 6.4, color: Theme.violet, active: expected == " ")
+                key(label: "", width: unit * 6.4, color: Theme.ink, active: expected == " ")
                 Spacer()
             }
         }
+        // The space-bar row centres itself with spacers; without this they would stretch the whole board.
+        .fixedSize()
         .animation(.easeOut(duration: 0.12), value: expected)
     }
 
@@ -82,10 +84,10 @@ struct KeyboardHint: View {
                 .shadow(color: active ? color.opacity(0.6) : .clear, radius: 8)
             Text(label)
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(active ? .white : .primary.opacity(0.65))
+                .foregroundStyle(active ? Theme.onInk : .primary.opacity(0.65))
                 .frame(maxHeight: .infinity)
             if isHome {
-                Capsule().fill(active ? .white.opacity(0.8) : .primary.opacity(0.3)).frame(
+                Capsule().fill(active ? Theme.onInk.opacity(0.8) : .primary.opacity(0.3)).frame(
                     width: 9, height: 2
                 ).padding(.bottom, 4)
             }

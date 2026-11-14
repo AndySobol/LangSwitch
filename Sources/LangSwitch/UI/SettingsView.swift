@@ -60,6 +60,14 @@ struct SettingsView: View {
                         )
                     ) { Toggle("", isOn: $model.settings.fixesLayout).labelsHidden() }
                     SettingRow(
+                        title: loc("Не дожидаться пробела", "Do not wait for the space"),
+                        detail: loc(
+                            "Слово конвертируется уже после четырёх букв, если в текущей раскладке оно ни во что не складывается.",
+                            "A word is converted after four letters when it cannot be anything on the current layout."
+                        )
+                    ) { Toggle("", isOn: $model.settings.convertsEarly).labelsHidden() }
+                    .disabled(!model.settings.fixesLayout)
+                    SettingRow(
                         title: loc("Орфография", "Spelling"),
                         detail: loc(
                             "Переставленные, пропущенные и лишние буквы, частые ошибки.",
@@ -93,7 +101,7 @@ struct SettingsView: View {
                 }
                 .disabled(!model.settings.enabled)
             }
-            .toggleStyle(.switch)
+            .toggleStyle(.mono)
             .card()
 
             VStack(alignment: .leading, spacing: 8) {
@@ -109,12 +117,12 @@ struct SettingsView: View {
                     )
                 ) { Toggle("", isOn: $model.settings.completion).labelsHidden() }
                 SettingRow(title: loc("Принимать клавишей", "Accept with")) {
-                    Picker("", selection: $model.settings.completionAcceptKey) {
-                        Text("Tab ⇥").tag(CompletionAcceptKey.tab)
-                        Text(loc("Стрелка →", "Right arrow →")).tag(CompletionAcceptKey.rightArrow)
-                    }
-                    .labelsHidden()
-                    .frame(width: 170)
+                    CapsulePicker(
+                        selection: $model.settings.completionAcceptKey,
+                        options: [
+                            (CompletionAcceptKey.tab, "Tab ⇥"),
+                            (CompletionAcceptKey.rightArrow, loc("Стрелка →", "Arrow →")),
+                        ])
                 }
                 .disabled(!model.settings.completion)
                 SettingRow(
@@ -134,7 +142,7 @@ struct SettingsView: View {
                         "Double-click a word in any text field to see replacements.")
                 ) { Toggle("", isOn: $model.settings.suggestsOnDoubleClick).labelsHidden() }
             }
-            .toggleStyle(.switch)
+            .toggleStyle(.mono)
             .card()
 
             VStack(alignment: .leading, spacing: 8) {
@@ -164,13 +172,12 @@ struct SettingsView: View {
                     )
                 ) { Toggle("", isOn: $model.settings.collectsPhrases).labelsHidden() }
                 SettingRow(title: loc("Хранить фразы", "Keep phrases for")) {
-                    Picker("", selection: $model.settings.phraseRetentionDays) {
-                        Text(loc("1 день", "1 day")).tag(1)
-                        Text(loc("7 дней", "7 days")).tag(7)
-                        Text(loc("30 дней", "30 days")).tag(30)
-                    }
-                    .labelsHidden()
-                    .frame(width: 130)
+                    CapsulePicker(
+                        selection: $model.settings.phraseRetentionDays,
+                        options: [
+                            (1, loc("1 день", "1 day")), (7, loc("7 дней", "7 days")),
+                            (30, loc("30 дней", "30 days")),
+                        ])
                 }
                 .disabled(!model.settings.collectsPhrases)
                 HStack {
@@ -189,11 +196,11 @@ struct SettingsView: View {
                         )
                     )
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.muted)
                 }
                 .padding(.top, 4)
             }
-            .toggleStyle(.switch)
+            .toggleStyle(.mono)
             .card()
             .confirmationDialog(
                 loc(
@@ -225,13 +232,12 @@ struct SettingsView: View {
                     )
                 ) { Toggle("", isOn: $model.settings.showsHUD).labelsHidden() }
                 SettingRow(title: loc("Язык интерфейса", "Interface language")) {
-                    Picker("", selection: $model.settings.interfaceLanguage) {
-                        Text(loc("Как в системе", "System")).tag(InterfaceLanguage.system)
-                        Text("Русский").tag(InterfaceLanguage.russian)
-                        Text("English").tag(InterfaceLanguage.english)
-                    }
-                    .labelsHidden()
-                    .frame(width: 150)
+                    CapsulePicker(
+                        selection: $model.settings.interfaceLanguage,
+                        options: [
+                            (InterfaceLanguage.system, loc("Как в системе", "System")),
+                            (InterfaceLanguage.russian, "Русский"), (InterfaceLanguage.english, "English"),
+                        ])
                 }
                 SettingRow(
                     title: loc("Универсальный доступ", "Accessibility access"),
@@ -244,7 +250,7 @@ struct SettingsView: View {
                     Button(loc("Открыть настройки", "Open Settings")) { model.openAccessibilitySettings() }
                 }
             }
-            .toggleStyle(.switch)
+            .toggleStyle(.mono)
             .card()
 
             let version =
@@ -256,7 +262,7 @@ struct SettingsView: View {
                         "works offline and sends nothing over the network")
             )
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Theme.muted)
         }
     }
 }

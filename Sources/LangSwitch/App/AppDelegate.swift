@@ -103,6 +103,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.isReleasedWhenClosed = false
+            window.appearance = NSAppearance(named: .darkAqua)
+            window.isOpaque = false
+            window.backgroundColor = .clear
+            window.isMovableByWindowBackground = true
             window.contentMinSize = NSSize(width: 860, height: 560)
             window.delegate = self
             let hosting = NSHostingController(rootView: RootView().environment(model))

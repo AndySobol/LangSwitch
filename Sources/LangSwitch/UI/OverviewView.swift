@@ -16,16 +16,13 @@ struct OverviewView: View {
             subtitle: loc("Что LangSwitch сделал за вас сегодня", "What LangSwitch did for you today")
         ) {
             HStack(spacing: 16) {
-                ZStack {
-                    Circle().fill(
-                        model.settings.enabled
-                            ? AnyShapeStyle(Theme.brand) : AnyShapeStyle(.gray.opacity(0.3)))
-                    Image(systemName: model.settings.enabled ? "bolt.fill" : "pause.fill")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(.white)
-                        .contentTransition(.symbolEffect(.replace))
-                }
-                .frame(width: 56, height: 56)
+                Image(systemName: model.settings.enabled ? "bolt.fill" : "pause.fill")
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(model.settings.enabled ? Theme.ink : Theme.muted)
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 52, height: 52)
+                    .background(Theme.surfaceStrong, in: Circle())
+                    .overlay(Circle().strokeBorder(Theme.hairline))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(
                         model.settings.enabled
@@ -36,16 +33,16 @@ struct OverviewView: View {
                     HStack(spacing: 6) {
                         LanguageBadge(language: model.currentLayout?.language)
                         Text(model.currentLayout?.name ?? loc("Раскладка не определена", "Unknown layout"))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.muted)
                         if let pause = model.settings.hotkey(for: .togglePause) {
-                            Text("·").foregroundStyle(.tertiary)
+                            Text("·").foregroundStyle(Theme.faint)
                             KeyCap(text: pause.display)
                         }
                     }
                     .font(.callout)
                 }
                 Spacer()
-                Toggle("", isOn: $model.settings.enabled).toggleStyle(.switch).labelsHidden().controlSize(
+                Toggle("", isOn: $model.settings.enabled).toggleStyle(.mono).labelsHidden().controlSize(
                     .large)
             }
             .card()
@@ -54,16 +51,16 @@ struct OverviewView: View {
             HStack(spacing: 14) {
                 StatTile(
                     title: loc("Слов набрано", "Words typed"), value: today.words,
-                    symbol: "character.cursor.ibeam", color: Theme.indigo)
+                    symbol: "character.cursor.ibeam", color: Theme.ink)
                 StatTile(
                     title: loc("Раскладка", "Layout fixes"), value: today.layoutFixes,
-                    symbol: "arrow.left.arrow.right", color: Theme.violet)
+                    symbol: "arrow.left.arrow.right", color: Theme.ink)
                 StatTile(
                     title: loc("Опечатки", "Typos fixed"), value: today.spellingFixes,
-                    symbol: "textformat.abc.dottedunderline", color: Theme.mint)
+                    symbol: "textformat.abc.dottedunderline", color: Theme.ink)
                 StatTile(
                     title: loc("Дополнения", "Completions"), value: today.completions, symbol: "sparkles",
-                    color: Theme.amber)
+                    color: Theme.ink)
             }
 
             HStack(alignment: .top, spacing: 14) {
@@ -72,7 +69,11 @@ struct OverviewView: View {
                         title: loc("Исправления за 14 дней", "Fixes, last 14 days"), symbol: "chart.bar.fill")
                     Chart(model.statistics.recent(14), id: \.date) { day in
                         BarMark(x: .value("day", day.date, unit: .day), y: .value("fixes", day.value.fixes))
-                            .foregroundStyle(Theme.calm)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Theme.ink.opacity(0.9), Theme.ink.opacity(0.35)],
+                                    startPoint: .top, endPoint: .bottom)
+                            )
                             .cornerRadius(4)
                     }
                     .chartXAxis {
@@ -94,7 +95,7 @@ struct OverviewView: View {
                                 "Nothing yet — start typing anywhere.")
                         )
                         .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.muted)
                         .frame(maxWidth: .infinity, minHeight: 138, alignment: .center)
                     } else {
                         VStack(spacing: 6) {
@@ -104,7 +105,7 @@ struct OverviewView: View {
                                         systemName: record.isUndo
                                             ? "arrow.uturn.backward" : Theme.symbol(for: record.kinds)
                                     )
-                                    .foregroundStyle(Theme.color(for: record.kinds))
+                                    .foregroundStyle(Theme.ink)
                                     .frame(width: 18)
                                     Text(record.original).strikethrough(!record.isUndo).foregroundStyle(
                                         .secondary)
@@ -113,7 +114,7 @@ struct OverviewView: View {
                                     Text(record.corrected)
                                     Spacer()
                                     if let application = record.application {
-                                        Text(application).font(.caption).foregroundStyle(.tertiary)
+                                        Text(application).font(.caption).foregroundStyle(Theme.faint)
                                     }
                                 }
                                 .font(.callout)
@@ -135,7 +136,7 @@ struct OverviewView: View {
                     )
                 )
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
                 TextEditor(text: $sample)
                     .font(.system(size: 14))
                     .scrollContentBackground(.hidden)
@@ -157,8 +158,7 @@ struct OverviewView: View {
                     } label: {
                         Label(loc("Исправить", "Fix"), systemImage: "wand.and.stars")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Theme.indigo)
+                    .buttonStyle(.primary)
                     .disabled(isFixing || !model.isLoaded)
                     if let hotkey = model.settings.hotkey(for: .fixSelection) {
                         KeyCap(text: hotkey.display)
@@ -168,17 +168,17 @@ struct OverviewView: View {
                                 "— for selected text in any application")
                         )
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.muted)
                     }
                 }
                 if let fixed {
                     HStack(alignment: .top, spacing: 10) {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.mint)
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.ink)
                         Text(fixed).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(12)
                     .background(
-                        Theme.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        Theme.surfaceStrong, in: RoundedRectangle(cornerRadius: 10, style: .continuous)
                     )
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
@@ -198,14 +198,13 @@ struct StatTile: View {
         VStack(alignment: .leading, spacing: 8) {
             Image(systemName: symbol)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(color)
-                .frame(width: 30, height: 30)
-                .background(color.opacity(0.16), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .foregroundStyle(Theme.muted)
+                .glyphTile()
             Text("\(value)")
                 .font(.system(size: 26, weight: .bold, design: .rounded))
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
-            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(title).font(.caption).foregroundStyle(Theme.muted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .card(padding: 14)

@@ -24,10 +24,14 @@ struct DictionaryView: View {
                 SectionHeader(title: loc("Мои слова", "My words"), symbol: "text.badge.plus")
                 HStack {
                     TextField(loc("Новое слово, имя или название", "A new word or name"), text: $newWord)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(.plain)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Theme.surface, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.hairline))
                         .onSubmit(add)
-                    Button(loc("Добавить", "Add"), action: add).buttonStyle(.borderedProminent).tint(
-                        Theme.indigo
+                    Button(loc("Добавить", "Add"), action: add).buttonStyle(.primary).tint(
+                        Theme.ink
                     )
                     .disabled(newWord.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
@@ -38,23 +42,23 @@ struct DictionaryView: View {
                             "Words you add, or type three times, appear here and stop being corrected.")
                     )
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.muted)
                 } else {
                     ChipFlow(items: vocabulary.words.sorted { $0.lowercased() < $1.lowercased() }) { word in
                         Chip(
                             text: word,
-                            accent: model.learning.autoLearned.contains(word) ? Theme.mint : Theme.indigo
+                            accent: model.learning.autoLearned.contains(word) ? Theme.ink : Theme.ink
                         ) {
                             model.updateLearning { $0.removeWord(word) }
                         }
                     }
                     HStack(spacing: 14) {
                         Label(loc("добавлено вами", "added by you"), systemImage: "circle.fill")
-                            .foregroundStyle(Theme.indigo)
+                            .foregroundStyle(Theme.ink)
                         Label(
                             loc("выучено автоматически", "learned automatically"), systemImage: "circle.fill"
                         )
-                        .foregroundStyle(Theme.mint)
+                        .foregroundStyle(Theme.ink)
                     }
                     .font(.caption)
                     .labelStyle(.titleAndIcon)
@@ -102,11 +106,11 @@ struct DictionaryView: View {
                             "Once a few typos have been fixed, a practice list appears here.")
                     )
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.muted)
                 } else {
                     ChipFlow(items: weak.map { "\($0.key) ×\($0.value)" }) { text in
                         Text(text).font(.callout).padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(Theme.amber.opacity(0.16), in: Capsule())
+                            .background(Theme.surfaceStrong, in: Capsule())
                     }
                     Button {
                         model.settings.trainerSource = .weakWords
@@ -131,7 +135,7 @@ struct DictionaryView: View {
                                         + phrase.date.formatted(date: .abbreviated, time: .shortened)
                                 )
                                 .font(.caption)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(Theme.faint)
                             }
                             Spacer()
                             Button {
@@ -140,7 +144,7 @@ struct DictionaryView: View {
                                 Image(systemName: "trash")
                             }
                             .buttonStyle(.plain)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.muted)
                         }
                     }
                 }
@@ -155,10 +159,10 @@ struct DictionaryView: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader(title: title, symbol: symbol)
             if items.isEmpty {
-                Text(empty).font(.callout).foregroundStyle(.secondary).fixedSize(
+                Text(empty).font(.callout).foregroundStyle(Theme.muted).fixedSize(
                     horizontal: false, vertical: true)
             } else {
-                ChipFlow(items: items) { item in Chip(text: item, accent: Theme.violet) { remove(item) } }
+                ChipFlow(items: items) { item in Chip(text: item, accent: Theme.ink) { remove(item) } }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,7 +180,7 @@ struct Chip: View {
             Text(text).font(.callout)
             Button(action: remove) { Image(systemName: "xmark").font(.system(size: 8, weight: .bold)) }
                 .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.muted)
         }
         .padding(.leading, 10)
         .padding(.trailing, 8)

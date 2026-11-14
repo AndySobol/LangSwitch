@@ -135,6 +135,14 @@ package struct NGramModel: Sendable {
         return total / Float(codes.count - 2)
     }
 
+    /// Like `plausibility(of:)`, for the beginning of a word that is still being typed.
+    package func prefixPlausibility(of prefix: String) -> Float {
+        var codes = Self.encode(prefix, index: index)
+        codes.removeLast()  // no word boundary after an unfinished word
+        guard codes.count >= 4 else { return 0 }
+        return (Self.rawScore(codes, trigrams: trigrams, size: size) - mean) / deviation
+    }
+
     /// How word-like `word` is: 0 is a typical dictionary word, below about -2.5 is noise.
     package func plausibility(of word: String) -> Float {
         let codes = Self.encode(word, index: index)

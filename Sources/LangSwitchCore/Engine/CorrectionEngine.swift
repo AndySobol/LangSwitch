@@ -42,6 +42,9 @@ package struct ChunkInput: Sendable {
     package var sentenceStart = false
     /// Lower-case words typed before this chunk in the same clause, nearest last.
     package var previousWords: [String] = []
+    /// The chunk may open a sentence (it is the first one typed after the caret was placed), so a
+    /// capital letter on its first word does not mark a proper name.
+    package var mayOpenSentence = false
 
     package init(typed: String, typedLanguage: Language, alternative: String? = nil) {
         self.typed = typed
@@ -153,7 +156,11 @@ package struct CorrectionEngine {
                         }
                     }
                 }
-                if options.spelling, let fixed = speller.autoCorrection(for: word, language: language) {
+                if options.spelling,
+                    let fixed = speller.autoCorrection(
+                        for: word, language: language,
+                        capitalIsOrdinary: isFirst && (input.sentenceStart || input.mayOpenSentence))
+                {
                     tokens[index].text = fixed
                     kinds.insert(.spelling)
                     hasKnownWord = true
