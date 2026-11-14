@@ -1,0 +1,1026 @@
+good	adj	great, fine, excellent, solid, decent, positive
+bad	adj	poor, terrible, awful, inferior, unpleasant
+big	adj	large, huge, great, substantial, sizable, massive
+small	adj	little, tiny, minor, compact, slight, modest
+large	adj	big, huge, substantial, extensive, sizable, vast
+little	adj	small, tiny, slight, minor, brief, petite
+fast	adj	quick, rapid, swift, speedy, brisk, prompt
+slow	adj	gradual, sluggish, unhurried, leisurely, delayed, lagging
+quick	adj	fast, rapid, swift, speedy, prompt, brief
+important	adj	significant, key, crucial, essential, vital, major
+useful	adj	helpful, handy, practical, valuable, beneficial, convenient
+nice	adj	pleasant, lovely, kind, enjoyable, friendly, agreeable
+hard	adj	difficult, tough, challenging, firm, solid, demanding
+easy	adj	simple, effortless, straightforward, painless, light, smooth
+interesting	adj	engaging, fascinating, intriguing, compelling, absorbing, curious
+simple	adj	easy, plain, basic, straightforward, clear, minimal
+difficult	adj	hard, tough, challenging, demanding, tricky, complex
+complex	adj	complicated, intricate, involved, elaborate, sophisticated, difficult
+complicated	adj	complex, intricate, involved, tricky, convoluted, elaborate
+beautiful	adj	lovely, gorgeous, stunning, attractive, pretty, elegant
+ugly	adj	unattractive, unsightly, hideous, unpleasant, plain, grotesque
+pretty	adj	attractive, lovely, cute, beautiful, charming, appealing
+new	adj	fresh, recent, modern, novel, latest, current
+old	adj	aged, former, ancient, previous, outdated, elderly
+young	adj	youthful, juvenile, junior, new, early, immature
+modern	adj	contemporary, current, up-to-date, recent, advanced, new
+strong	adj	powerful, sturdy, robust, solid, firm, intense
+weak	adj	feeble, frail, fragile, faint, flimsy, powerless
+smart	adj	clever, intelligent, bright, sharp, wise, brilliant
+clever	adj	smart, bright, ingenious, sharp, inventive, shrewd
+stupid	adj	foolish, silly, dumb, senseless, unwise, mindless
+happy	adj	glad, pleased, joyful, cheerful, delighted, content
+sad	adj	unhappy, sorrowful, gloomy, down, upset, miserable
+angry	adj	mad, furious, annoyed, irritated, upset, cross
+calm	adj	peaceful, quiet, relaxed, composed, serene, still
+quiet	adj	silent, calm, peaceful, still, hushed, soft
+loud	adj	noisy, booming, deafening, thunderous, blaring, vocal
+clean	adj	neat, tidy, spotless, pure, clear, fresh
+dirty	adj	filthy, messy, grimy, soiled, muddy, stained
+bright	adj	brilliant, vivid, shining, luminous, radiant, light
+dark	adj	dim, gloomy, shadowy, black, murky, unlit
+warm	adj	heated, cozy, mild, friendly, toasty, pleasant
+cold	adj	chilly, cool, freezing, icy, frosty, frigid
+hot	adj	warm, heated, boiling, burning, scorching, spicy
+cool	adj	chilly, fresh, calm, great, composed, neat
+long	adj	lengthy, extended, prolonged, extensive, drawn-out, tall
+short	adj	brief, concise, small, quick, compact, limited
+tall	adj	high, lofty, towering, big, elevated, lanky
+high	adj	tall, elevated, lofty, raised, great, strong
+low	adj	short, small, reduced, minimal, shallow, soft
+wide	adj	broad, extensive, large, spacious, expansive, vast
+narrow	adj	thin, slim, tight, limited, restricted, slender
+thick	adj	dense, heavy, fat, wide, solid, bulky
+thin	adj	slim, slender, lean, narrow, fine, skinny
+heavy	adj	weighty, massive, hefty, bulky, dense, intense
+light	adj	lightweight, bright, pale, gentle, mild, airy
+soft	adj	gentle, smooth, tender, mild, quiet, delicate
+sharp	adj	pointed, keen, acute, crisp, sudden, clear
+fresh	adj	new, recent, clean, crisp, original, cool
+full	adj	complete, filled, entire, whole, packed, total
+empty	adj	vacant, blank, hollow, bare, void, unfilled
+whole	adj	entire, complete, full, total, intact, unbroken
+main	adj	primary, chief, principal, central, key, major
+major	adj	significant, main, important, key, serious, considerable
+minor	adj	small, slight, lesser, trivial, secondary, insignificant
+basic	adj	fundamental, simple, essential, primary, core, elementary
+common	adj	usual, ordinary, frequent, widespread, shared, typical
+usual	adj	normal, regular, typical, common, standard, customary
+normal	adj	usual, regular, ordinary, standard, typical, average
+strange	adj	odd, weird, unusual, peculiar, curious, bizarre
+weird	adj	strange, odd, bizarre, peculiar, unusual, eerie
+unusual	adj	uncommon, rare, strange, odd, unique, remarkable
+special	adj	particular, unique, exceptional, specific, distinct, notable
+different	adj	distinct, diverse, various, unlike, separate, alternative
+similar	adj	alike, comparable, related, close, like, equivalent
+same	adj	identical, equal, matching, equivalent, alike, unchanged
+exact	adj	precise, accurate, specific, correct, definite, strict
+right	adj	correct, proper, accurate, appropriate, suitable, true
+wrong	adj	incorrect, mistaken, false, inaccurate, improper, bad
+correct	adj	right, accurate, proper, true, exact, valid
+clear	adj	obvious, plain, transparent, evident, distinct, simple
+obvious	adj	clear, evident, apparent, plain, visible, noticeable
+possible	adj	feasible, likely, potential, achievable, viable, doable
+impossible	adj	unachievable, unfeasible, hopeless, unthinkable, unattainable, impractical
+necessary	adj	essential, required, needed, vital, mandatory, crucial
+essential	adj	necessary, vital, crucial, key, fundamental, critical
+helpful	adj	useful, supportive, handy, beneficial, valuable, kind
+harmful	adj	damaging, dangerous, destructive, unhealthy, toxic, bad
+dangerous	adj	risky, hazardous, unsafe, harmful, perilous, threatening
+safe	adj	secure, protected, harmless, reliable, sound, risk-free
+reliable	adj	dependable, trustworthy, solid, stable, consistent, proven
+free	adj	available, open, independent, complimentary, unrestricted, loose
+busy	adj	occupied, active, engaged, hectic, crowded, tied up
+ready	adj	prepared, set, available, willing, done, finished
+sure	adj	certain, confident, positive, definite, convinced, clear
+certain	adj	sure, definite, confident, specific, particular, positive
+serious	adj	severe, important, grave, earnest, significant, major
+funny	adj	amusing, humorous, hilarious, comical, entertaining, witty
+scary	adj	frightening, terrifying, creepy, alarming, spooky, chilling
+terrible	adj	awful, horrible, dreadful, bad, appalling, atrocious
+awful	adj	terrible, horrible, dreadful, bad, nasty, appalling
+great	adj	excellent, wonderful, fantastic, superb, big, outstanding
+excellent	adj	outstanding, superb, great, exceptional, first-rate, brilliant
+wonderful	adj	great, marvelous, fantastic, lovely, amazing, delightful
+amazing	adj	incredible, astonishing, wonderful, remarkable, stunning, awesome
+awesome	adj	amazing, great, impressive, incredible, fantastic, superb
+perfect	adj	ideal, flawless, excellent, complete, exact, spotless
+pleasant	adj	nice, enjoyable, agreeable, lovely, friendly, pleasing
+kind	adj	generous, caring, gentle, considerate, warm, thoughtful
+friendly	adj	kind, warm, welcoming, pleasant, amiable, approachable
+polite	adj	courteous, respectful, civil, well-mannered, gracious, considerate
+rude	adj	impolite, disrespectful, offensive, harsh, discourteous, abrupt
+honest	adj	truthful, sincere, frank, open, fair, straightforward
+fair	adj	just, reasonable, honest, equal, balanced, impartial
+strict	adj	firm, rigid, stern, harsh, exact, tight
+careful	adj	cautious, attentive, thorough, mindful, precise, wary
+expensive	adj	costly, pricey, high-priced, valuable, premium, dear
+cheap	adj	inexpensive, affordable, low-cost, budget, economical, reasonable
+rich	adj	wealthy, affluent, prosperous, abundant, full, lavish
+poor	adj	needy, bad, weak, inferior, low, inadequate
+real	adj	actual, genuine, true, authentic, factual, concrete
+true	adj	real, correct, accurate, genuine, valid, honest
+false	adj	untrue, wrong, incorrect, fake, invalid, misleading
+fake	adj	false, counterfeit, artificial, bogus, forged, sham
+current	adj	present, existing, ongoing, latest, modern, active
+recent	adj	latest, new, current, fresh, modern, late
+previous	adj	prior, former, earlier, past, preceding, last
+next	adj	following, subsequent, upcoming, coming, adjacent, later
+last	adj	final, latest, previous, closing, ultimate, past
+final	adj	last, ultimate, closing, concluding, definitive, finished
+first	adj	initial, earliest, original, primary, opening, leading
+early	adj	initial, first, premature, prompt, advance, preliminary
+late	adj	delayed, overdue, tardy, recent, belated, behind
+future	adj	upcoming, coming, later, prospective, forthcoming, next
+past	adj	previous, former, earlier, old, prior, bygone
+famous	adj	well-known, renowned, celebrated, popular, noted, prominent
+popular	adj	well-liked, favorite, common, trendy, famous, widespread
+rare	adj	uncommon, unusual, scarce, infrequent, unique, exceptional
+frequent	adj	regular, common, repeated, recurring, constant, habitual
+constant	adj	steady, continuous, stable, fixed, persistent, consistent
+temporary	adj	short-term, brief, interim, provisional, passing, momentary
+permanent	adj	lasting, constant, enduring, fixed, stable, durable
+stable	adj	steady, firm, secure, solid, constant, reliable
+flexible	adj	adaptable, adjustable, versatile, elastic, pliable, open
+efficient	adj	effective, productive, capable, streamlined, economical, organized
+effective	adj	successful, efficient, productive, powerful, useful, capable
+successful	adj	effective, prosperous, winning, thriving, fruitful, profitable
+unique	adj	distinctive, special, original, rare, one-of-a-kind, singular
+typical	adj	usual, normal, standard, common, characteristic, average
+standard	adj	normal, regular, usual, typical, default, conventional
+suitable	adj	appropriate, fitting, proper, right, acceptable, convenient
+appropriate	adj	suitable, proper, fitting, right, relevant, apt
+relevant	adj	related, pertinent, applicable, appropriate, significant, fitting
+acceptable	adj	adequate, satisfactory, reasonable, fine, tolerable, decent
+enough	adj	sufficient, adequate, ample, plenty
+extra	adj	additional, more, spare, added, further, surplus
+additional	adj	extra, further, more, added, supplementary, another
+total	adj	complete, entire, full, whole, overall, absolute
+average	adj	typical, ordinary, medium, normal, mean, standard
+ideal	adj	perfect, optimal, best, model, ultimate, exemplary
+significant	adj	important, notable, considerable, major, meaningful, substantial
+slight	adj	small, minor, modest, faint, subtle, negligible
+visible	adj	noticeable, apparent, evident, clear, obvious, observable
+hidden	adj	concealed, secret, invisible, covered, unseen, buried
+open	adj	unlocked, accessible, public, available, frank, candid
+closed	adj	shut, sealed, locked, finished, private, restricted
+public	adj	open, common, shared, general, communal, official
+private	adj	personal, confidential, secret, individual, exclusive, internal
+personal	adj	private, individual, own, intimate, particular, subjective
+official	adj	formal, authorized, approved, legitimate, certified, proper
+formal	adj	official, proper, ceremonial, conventional, structured, stiff
+legal	adj	lawful, legitimate, valid, authorized, permitted, official
+logical	adj	reasonable, rational, sensible, coherent, sound, consistent
+reasonable	adj	sensible, fair, rational, logical, moderate, sound
+practical	adj	useful, sensible, realistic, functional, handy, workable
+specific	adj	particular, precise, exact, definite, explicit, certain
+detailed	adj	thorough, comprehensive, in-depth, elaborate, specific, complete
+brief	adj	short, quick, concise, fleeting, compact, succinct
+thorough	adj	careful, complete, detailed, comprehensive, in-depth, meticulous
+urgent	adj	pressing, critical, immediate, crucial, important, vital
+initial	adj	first, early, opening, original, starting, primary
+overall	adj	general, total, complete, global, broad, whole
+familiar	adj	known, common, usual, recognizable, well-known, routine
+traditional	adj	conventional, classic, customary, established, old-fashioned, standard
+original	adj	first, initial, authentic, creative, novel, unique
+creative	adj	inventive, imaginative, original, artistic, innovative, resourceful
+professional	adj	expert, skilled, qualified, competent, experienced, polished
+experienced	adj	skilled, seasoned, expert, practiced, qualified, veteran
+active	adj	energetic, lively, busy, engaged, dynamic, working
+responsible	adj	accountable, reliable, trustworthy, dependable, sensible, liable
+independent	adj	autonomous, separate, free, self-sufficient, self-reliant, unbiased
+random	adj	arbitrary, chance, accidental, haphazard, unplanned, casual
+sudden	adj	abrupt, unexpected, quick, rapid, sharp, swift
+smooth	adj	even, flat, sleek, seamless, fluid, polished
+rough	adj	coarse, uneven, harsh, approximate, bumpy, tough
+flat	adj	level, even, smooth, plain, horizontal, dull
+round	adj	circular, curved, spherical, rounded, ring-shaped
+huge	adj	enormous, massive, giant, vast, immense, gigantic
+tiny	adj	small, minute, miniature, little, microscopic, compact
+deep	adj	profound, bottomless, intense, thorough, rich, serious
+shallow	adj	superficial, surface, slight, trivial, thin, empty
+tired	adj	exhausted, weary, sleepy, worn out, drained, fatigued
+healthy	adj	well, fit, strong, sound, wholesome, robust
+sick	adj	ill, unwell, ailing, poorly, nauseous, queasy
+hungry	adj	starving, famished, peckish, ravenous, eager, empty
+tasty	adj	delicious, flavorful, yummy, appetizing, savory, scrumptious
+sweet	adj	sugary, pleasant, kind, lovely, charming, cute
+brave	adj	courageous, bold, fearless, daring, heroic, valiant
+shy	adj	timid, reserved, bashful, quiet, modest, hesitant
+proud	adj	pleased, satisfied, dignified, honored, confident, arrogant
+lazy	adj	idle, sluggish, inactive, slack, lethargic, unmotivated
+patient	adj	tolerant, calm, understanding, persistent, composed, enduring
+stubborn	adj	obstinate, persistent, headstrong, inflexible, determined, willful
+generous	adj	giving, kind, charitable, liberal, lavish, big-hearted
+lucky	adj	fortunate, blessed, favored, happy, charmed, successful
+worried	adj	anxious, concerned, nervous, uneasy, troubled, tense
+nervous	adj	anxious, tense, worried, uneasy, jumpy, edgy
+excited	adj	thrilled, eager, enthusiastic, delighted, animated, energized
+bored	adj	uninterested, weary, tired, fed up, restless, indifferent
+boring	adj	dull, tedious, monotonous, tiresome, uninteresting, bland
+confused	adj	puzzled, baffled, perplexed, lost, unsure, bewildered
+confusing	adj	unclear, puzzling, baffling, complicated, ambiguous, misleading
+surprised	adj	amazed, astonished, shocked, startled, stunned, taken aback
+comfortable	adj	cozy, relaxed, pleasant, snug, easy, convenient
+convenient	adj	handy, suitable, useful, practical, accessible, nearby
+available	adj	accessible, free, ready, obtainable, on hand, open
+accurate	adj	correct, precise, exact, true, right, faithful
+precise	adj	exact, accurate, specific, definite, careful, strict
+consistent	adj	steady, uniform, regular, coherent, constant, stable
+valid	adj	legitimate, sound, correct, acceptable, reasonable, legal
+broken	adj	damaged, faulty, shattered, cracked, defective, busted
+missing	adj	absent, lost, gone, lacking, omitted, misplaced
+separate	adj	distinct, individual, different, independent, detached, isolated
+entire	adj	whole, complete, full, total, all, intact
+complete	adj	full, entire, finished, total, whole, thorough
+various	adj	several, different, diverse, assorted, numerous, varied
+several	adj	some, various, a few, multiple, numerous, many
+general	adj	overall, common, broad, universal, usual, widespread
+particular	adj	specific, certain, special, distinct, exact, individual
+potential	adj	possible, likely, prospective, future, probable, promising
+likely	adj	probable, possible, expected, plausible, anticipated, potential
+key	adj	main, central, crucial, essential, critical, major
+critical	adj	crucial, vital, essential, urgent, serious, key
+powerful	adj	strong, mighty, potent, influential, forceful, robust
+gentle	adj	soft, mild, tender, kind, light, calm
+harsh	adj	severe, rough, strict, cruel, tough, bitter
+quickly	adv	fast, rapidly, swiftly, speedily, promptly, briskly
+slowly	adv	gradually, steadily, unhurriedly, leisurely, sluggishly, gently
+well	adv	properly, nicely, thoroughly, correctly, skillfully, successfully
+badly	adv	poorly, terribly, wrongly, severely, awfully, incorrectly
+very	adv	extremely, really, highly, quite, incredibly, truly
+really	adv	truly, actually, genuinely, very, indeed, honestly
+now	adv	currently, presently, today, immediately, right now, at once
+soon	adv	shortly, quickly, before long, presently, promptly, in a moment
+always	adv	constantly, forever, every time, continually, consistently, invariably
+never	adv	not ever, at no time, not once, under no circumstances
+sometimes	adv	occasionally, at times, now and then, periodically, once in a while
+often	adv	frequently, regularly, repeatedly, commonly, many times, usually
+rarely	adv	seldom, infrequently, hardly ever, occasionally, scarcely
+usually	adv	normally, generally, typically, commonly, mostly, as a rule
+immediately	adv	instantly, at once, right away, promptly, directly, now
+later	adv	afterward, subsequently, next, after, eventually, then
+then	adv	next, afterward, later, subsequently, after that
+already	adv	previously, before, by now, so far, earlier
+still	adv	yet, even now, nevertheless, however, even so
+again	adv	once more, anew, repeatedly, afresh, another time
+together	adv	jointly, collectively, as one, side by side, at once, simultaneously
+separately	adv	apart, individually, independently, alone, singly, one by one
+exactly	adv	precisely, just, accurately, specifically, absolutely, right
+approximately	adv	about, roughly, around, nearly, almost, close to
+almost	adv	nearly, practically, virtually, just about, about, roughly
+nearly	adv	almost, practically, virtually, about, roughly, close to
+completely	adv	totally, entirely, fully, absolutely, wholly, utterly
+partly	adv	partially, somewhat, in part, slightly, to some extent
+totally	adv	completely, entirely, fully, absolutely, utterly, wholly
+quite	adv	fairly, rather, pretty, very, completely, somewhat
+rather	adv	quite, fairly, somewhat, pretty, instead, preferably
+enough	adv	sufficiently, adequately, amply, plenty, fairly
+too	adv	also, as well, excessively, overly, besides, likewise
+slightly	adv	a little, somewhat, a bit, marginally, mildly, faintly
+much	adv	greatly, a lot, considerably, far, significantly, highly
+more	adv	further, additionally, extra, increasingly, besides
+easily	adv	effortlessly, simply, readily, smoothly, comfortably, without difficulty
+simply	adv	just, merely, easily, plainly, only, clearly
+just	adv	only, simply, merely, exactly, barely, recently
+only	adv	just, merely, solely, simply, exclusively, purely
+even	adv	still, yet, indeed, actually, so much as
+also	adv	too, as well, additionally, besides, furthermore, likewise
+however	adv	but, nevertheless, still, yet, though, nonetheless
+therefore	adv	so, thus, hence, consequently, as a result, accordingly
+actually	adv	really, in fact, truly, indeed, in reality, genuinely
+probably	adv	likely, most likely, presumably, perhaps, possibly, doubtless
+maybe	adv	perhaps, possibly, conceivably, potentially, it could be
+perhaps	adv	maybe, possibly, conceivably, potentially, feasibly
+definitely	adv	certainly, surely, absolutely, clearly, undoubtedly, without doubt
+certainly	adv	definitely, surely, absolutely, of course, undoubtedly, indeed
+obviously	adv	clearly, plainly, evidently, of course, apparently, naturally
+clearly	adv	obviously, plainly, evidently, distinctly, undoubtedly, visibly
+especially	adv	particularly, specifically, notably, mainly, above all, chiefly
+mainly	adv	mostly, primarily, chiefly, largely, generally, principally
+mostly	adv	mainly, largely, primarily, generally, chiefly, usually
+generally	adv	usually, normally, typically, mostly, broadly, overall
+basically	adv	essentially, fundamentally, mainly, primarily, in essence, mostly
+finally	adv	eventually, at last, ultimately, lastly, in the end, in conclusion
+eventually	adv	finally, ultimately, in the end, sooner or later, at last, in time
+gradually	adv	slowly, steadily, progressively, bit by bit, step by step, little by little
+suddenly	adv	abruptly, unexpectedly, all at once, quickly, instantly, without warning
+accidentally	adv	by mistake, unintentionally, by chance, inadvertently, unknowingly
+carefully	adv	cautiously, attentively, thoroughly, gently, precisely, with care
+quietly	adv	silently, softly, calmly, peacefully, discreetly, gently
+loudly	adv	noisily, aloud, forcefully, vocally, deafeningly, at full volume
+far	adv	away, a long way, remotely, much, considerably
+near	adv	close, nearby, close by, at hand, within reach
+everywhere	adv	all over, all around, throughout, far and wide, worldwide
+today	adv	now, this day, currently, nowadays, at present
+recently	adv	lately, newly, not long ago, just now, of late
+lately	adv	recently, of late, in recent times, these days, not long ago
+early	adv	ahead of time, beforehand, in advance, soon, prematurely
+late	adv	behind schedule, belatedly, tardily, overdue, after hours
+correctly	adv	properly, accurately, rightly, precisely, appropriately, exactly
+honestly	adv	truthfully, frankly, sincerely, openly, genuinely, candidly
+instead	adv	alternatively, rather, as a substitute, in place of, as an alternative
+otherwise	adv	or else, differently, if not, in other ways
+briefly	adv	shortly, quickly, concisely, in short, momentarily, in brief
+fully	adv	completely, entirely, totally, wholly, thoroughly, altogether
+directly	adv	straight, immediately, right, personally, plainly, frankly
+currently	adv	now, presently, at present, at the moment, today, right now
+previously	adv	before, earlier, formerly, in the past, once, already
+constantly	adv	always, continually, continuously, nonstop, endlessly, regularly
+regularly	adv	often, frequently, routinely, consistently, habitually, periodically
+perfectly	adv	flawlessly, ideally, completely, absolutely, exactly, fully
+greatly	adv	very much, considerably, significantly, highly, hugely, enormously
+highly	adv	very, extremely, greatly, strongly, exceptionally, immensely
+extremely	adv	very, highly, exceptionally, incredibly, intensely, hugely
+fairly	adv	quite, rather, reasonably, pretty, moderately, justly
+hardly	adv	barely, scarcely, only just, rarely, almost not
+okay	other	all right, fine, sure, alright, agreed, very well
+yes	other	sure, certainly, of course, absolutely, indeed, right
+no	other	not at all, never, negative, by no means
+thanks	other	thank you, much appreciated, cheers, many thanks
+please	other	kindly, if you would, if possible, be so kind
+hello	other	hi, hey, greetings, good day, welcome
+goodbye	other	bye, farewell, see you, so long, take care
+sorry	other	apologies, pardon, excuse me, my apologies, forgive me
+but	other	however, yet, though, still, although, nevertheless
+because	other	since, as, due to, for, given that, seeing that
+although	other	though, even though, while, whereas, despite the fact that
+if	other	provided, assuming, in case, whether, supposing, on condition that
+so	other	therefore, thus, hence, consequently, accordingly, then
+while	other	whereas, although, during, as, when, though
+about	other	regarding, concerning, around, approximately, on, roughly
+without	other	lacking, excluding, minus, absent, free from, missing
+despite	other	in spite of, regardless of, notwithstanding, even with
+during	other	throughout, in the course of, amid, while, within
+near	other	close to, by, beside, next to, around, adjacent to
+make	verb	create, build, produce, form, prepare, construct
+do	verb	perform, carry out, complete, execute, accomplish, handle
+say	verb	state, tell, mention, express, declare, remark
+tell	verb	inform, say, notify, explain, share, report
+talk	verb	speak, chat, discuss, converse, communicate
+speak	verb	talk, say, communicate, address, voice, express
+think	verb	believe, consider, reflect, suppose, reckon, ponder
+believe	verb	think, trust, accept, suppose, assume, feel
+know	verb	understand, realize, recognize, be aware of, comprehend
+understand	verb	comprehend, grasp, get, follow, realize, see
+use	verb	utilize, apply, employ, operate, work with, exploit
+help	verb	assist, support, aid, guide, serve, back
+start	verb	begin, launch, initiate, open, commence, kick off
+begin	verb	start, commence, initiate, open, launch, embark on
+finish	verb	complete, end, conclude, finalize, wrap up, close
+end	verb	finish, stop, conclude, close, terminate, complete
+stop	verb	halt, end, quit, cease, pause, prevent
+continue	verb	proceed, carry on, keep, persist, resume, go on
+change	verb	alter, modify, adjust, transform, switch, vary
+improve	verb	enhance, upgrade, refine, better, boost, polish
+check	verb	verify, examine, inspect, review, test, confirm
+discuss	verb	talk about, debate, review, consider, go over, examine
+solve	verb	resolve, fix, work out, figure out, settle, crack
+decide	verb	choose, determine, settle, resolve, conclude, opt
+choose	verb	select, pick, opt for, prefer, decide on, elect
+want	verb	wish, desire, need, would like, crave, hope for
+need	verb	require, want, demand, lack, call for, depend on
+like	verb	enjoy, love, prefer, appreciate, fancy, admire
+love	verb	adore, cherish, enjoy, treasure, care for, like
+hate	verb	dislike, detest, despise, loathe, resent
+see	verb	notice, spot, view, observe, watch, witness
+look	verb	glance, gaze, stare, view, peek, appear
+watch	verb	observe, view, monitor, see, follow, look at
+hear	verb	listen, catch, overhear, perceive, learn, find out
+listen	verb	hear, pay attention, tune in, heed, attend
+go	verb	move, travel, proceed, head, leave, walk
+come	verb	arrive, approach, appear, reach, show up, enter
+leave	verb	depart, exit, go, abandon, quit, withdraw
+return	verb	come back, go back, give back, restore, revert, repay
+arrive	verb	come, reach, show up, land, get in, appear
+stay	verb	remain, wait, linger, continue, stop, reside
+wait	verb	hold on, pause, stay, remain, hang on, linger
+live	verb	reside, dwell, exist, stay, survive, inhabit
+work	verb	function, operate, labor, perform, run, toil
+play	verb	perform, compete, have fun, act, participate, frolic
+learn	verb	study, discover, master, find out, pick up, grasp
+study	verb	learn, examine, research, review, analyze, investigate
+teach	verb	instruct, educate, train, coach, tutor, show
+read	verb	study, scan, browse, review, peruse, skim
+write	verb	compose, draft, record, note, author, jot down
+draw	verb	sketch, illustrate, outline, depict, pull, attract
+create	verb	make, build, produce, design, develop, generate
+build	verb	construct, create, make, develop, assemble, establish
+design	verb	create, plan, draft, develop, devise, craft
+develop	verb	build, create, grow, expand, evolve, advance
+open	verb	unlock, launch, start, unseal, begin, unfold
+close	verb	shut, end, seal, finish, lock, conclude
+add	verb	include, attach, insert, append, combine, increase
+remove	verb	delete, eliminate, take away, clear, erase, extract
+delete	verb	remove, erase, clear, cancel, wipe, discard
+replace	verb	substitute, swap, change, exchange, restore, supersede
+update	verb	refresh, upgrade, revise, renew, modernize, amend
+fix	verb	repair, correct, mend, resolve, patch, solve
+repair	verb	fix, mend, restore, patch, service, correct
+break	verb	crack, smash, shatter, damage, split, violate
+save	verb	keep, store, preserve, rescue, protect, reserve
+lose	verb	misplace, miss, drop, forfeit, fail, waste
+find	verb	discover, locate, spot, detect, uncover, identify
+search	verb	look for, seek, hunt, explore, scan, browse
+get	verb	obtain, receive, acquire, gain, fetch, become
+receive	verb	get, obtain, accept, collect, gain, acquire
+give	verb	provide, offer, hand, grant, present, donate
+take	verb	grab, pick, accept, carry, bring, seize
+send	verb	deliver, forward, ship, dispatch, transmit, mail
+bring	verb	carry, deliver, fetch, take, bear, cause
+buy	verb	purchase, acquire, get, obtain, pay for, order
+sell	verb	trade, market, retail, offer, deal, vend
+pay	verb	settle, compensate, cover, spend, reward, fund
+show	verb	display, present, demonstrate, reveal, exhibit, indicate
+explain	verb	clarify, describe, illustrate, interpret, spell out, define
+describe	verb	explain, outline, portray, depict, detail, characterize
+ask	verb	question, inquire, request, query, invite, demand
+answer	verb	reply, respond, solve, react, address, return
+reply	verb	answer, respond, react, write back, return, counter
+offer	verb	propose, provide, suggest, present, give, extend
+suggest	verb	propose, recommend, advise, hint, imply, offer
+recommend	verb	suggest, advise, propose, endorse, support, urge
+agree	verb	consent, accept, concur, approve, match, comply
+refuse	verb	decline, reject, deny, turn down, say no, resist
+accept	verb	receive, take, approve, agree, welcome, adopt
+approve	verb	accept, endorse, authorize, confirm, support, sanction
+confirm	verb	verify, validate, approve, prove, affirm, certify
+allow	verb	permit, let, enable, authorize, approve, grant
+let	verb	allow, permit, enable, authorize, rent, lease
+prevent	verb	stop, avoid, block, hinder, prohibit, avert
+avoid	verb	evade, escape, skip, dodge, prevent, steer clear of
+require	verb	need, demand, call for, involve, expect, request
+expect	verb	anticipate, await, predict, assume, hope, require
+hope	verb	wish, expect, trust, long, aspire, anticipate
+trust	verb	believe, rely on, depend on, count on, have faith in
+doubt	verb	question, distrust, suspect, mistrust, hesitate, wonder
+worry	verb	fret, be concerned, stress, bother, trouble, be anxious
+feel	verb	sense, experience, touch, perceive, believe, think
+enjoy	verb	like, love, appreciate, relish, savor, delight in
+remember	verb	recall, recollect, retain, memorize, think of, keep in mind
+forget	verb	overlook, neglect, miss, omit, lose track of, disregard
+notice	verb	see, spot, observe, detect, note, perceive
+mention	verb	note, state, refer to, cite, bring up, point out
+note	verb	notice, mention, record, observe, write down, remark
+highlight	verb	emphasize, stress, underline, feature, spotlight, accent
+emphasize	verb	stress, highlight, underline, accent, point out, underscore
+indicate	verb	show, suggest, point to, signal, mark, imply
+imagine	verb	picture, envision, suppose, visualize, think, conceive
+assume	verb	suppose, presume, believe, expect, guess, accept
+guess	verb	estimate, suppose, assume, predict, reckon, speculate
+prove	verb	demonstrate, show, confirm, verify, establish, validate
+convince	verb	persuade, assure, sway, win over, satisfy, talk into
+plan	verb	arrange, organize, intend, schedule, design, prepare
+organize	verb	arrange, plan, sort, coordinate, structure, set up
+arrange	verb	organize, plan, order, set up, sort, schedule
+prepare	verb	get ready, arrange, plan, make, set up, organize
+perform	verb	do, carry out, execute, act, complete, present
+complete	verb	finish, conclude, finalize, accomplish, fulfill, end
+achieve	verb	accomplish, reach, attain, gain, complete, realize
+reach	verb	arrive at, achieve, attain, contact, get to, touch
+manage	verb	handle, run, control, direct, cope, oversee
+handle	verb	manage, deal with, control, operate, process, tackle
+try	verb	attempt, test, seek, strive, sample, endeavor
+attempt	verb	try, seek, strive, endeavor, aim, undertake
+grow	verb	increase, expand, develop, rise, mature, enlarge
+increase	verb	raise, grow, boost, expand, rise, extend
+decrease	verb	reduce, lower, drop, decline, cut, shrink
+reduce	verb	decrease, lower, cut, lessen, shrink, minimize
+raise	verb	lift, increase, elevate, boost, bring up, collect
+lower	verb	reduce, decrease, drop, cut, lessen, diminish
+expand	verb	grow, extend, enlarge, widen, increase, broaden
+simplify	verb	streamline, clarify, reduce, ease, shorten, make easier
+combine	verb	merge, join, mix, unite, blend, integrate
+split	verb	divide, separate, break, share, part, cut
+divide	verb	split, separate, share, distribute, partition, break up
+share	verb	distribute, divide, split, give, post, exchange
+compare	verb	contrast, match, relate, weigh, measure, liken
+measure	verb	gauge, assess, calculate, evaluate, quantify, size
+calculate	verb	compute, work out, estimate, determine, figure, count
+count	verb	tally, number, calculate, add up, total, matter
+consider	verb	think about, regard, examine, weigh, contemplate, review
+include	verb	contain, cover, involve, incorporate, add, comprise
+contain	verb	include, hold, comprise, consist of, carry, involve
+provide	verb	give, supply, offer, deliver, furnish, present
+support	verb	help, back, assist, sustain, encourage, uphold
+protect	verb	defend, guard, shield, secure, safeguard, preserve
+keep	verb	retain, hold, maintain, save, store, continue
+hold	verb	keep, grip, carry, contain, grasp, retain
+put	verb	place, set, lay, position, insert, leave
+place	verb	put, set, position, lay, locate, arrange
+set	verb	put, place, adjust, establish, fix, arrange
+move	verb	shift, transfer, relocate, go, travel, carry
+run	verb	sprint, operate, manage, jog, race, execute
+walk	verb	stroll, step, hike, march, wander, stride
+fall	verb	drop, tumble, decline, collapse, sink, decrease
+push	verb	press, shove, drive, urge, force, promote
+pull	verb	drag, tug, draw, haul, tow, extract
+throw	verb	toss, cast, fling, pitch, hurl, launch
+catch	verb	grab, capture, seize, trap, snag, intercept
+turn	verb	rotate, spin, twist, become, switch, flip
+become	verb	turn into, grow, get, develop into, come to be
+seem	verb	appear, look, sound, feel, come across as
+appear	verb	seem, emerge, show up, arise, surface, look
+happen	verb	occur, take place, arise, come about, result
+cause	verb	produce, create, trigger, lead to, bring about, generate
+lead	verb	guide, direct, head, manage, command, conduct
+follow	verb	track, pursue, obey, come after, observe, understand
+control	verb	manage, direct, regulate, command, govern, restrain
+join	verb	connect, link, unite, enter, combine, attach
+connect	verb	link, join, attach, unite, relate, couple
+meet	verb	encounter, gather, greet, face, satisfy, join
+call	verb	phone, name, ring, shout, contact, summon
+contact	verb	reach, call, message, approach, notify, get in touch with
+inform	verb	tell, notify, advise, brief, update, alert
+remind	verb	prompt, notify, alert, jog the memory, nudge
+repeat	verb	redo, restate, duplicate, echo, replicate, reiterate
+clarify	verb	explain, simplify, clear up, specify, define, resolve
+define	verb	describe, specify, explain, determine, establish, outline
+identify	verb	recognize, find, detect, name, determine, spot
+discover	verb	find, uncover, learn, detect, realize, reveal
+analyze	verb	examine, study, evaluate, review, inspect, investigate
+review	verb	examine, check, assess, evaluate, inspect, revisit
+test	verb	check, try, examine, verify, assess, trial
+cancel	verb	call off, abort, revoke, annul, drop, scrap
+delay	verb	postpone, defer, hold up, stall, slow, put off
+postpone	verb	delay, defer, put off, reschedule, shelve, suspend
+hurry	verb	rush, hasten, speed, dash, race, hustle
+spend	verb	use, pay, expend, invest, pass, consume
+earn	verb	make, gain, receive, deserve, win, collect
+problem	noun	issue, trouble, difficulty, challenge, complication, obstacle
+task	noun	job, assignment, duty, chore, mission, activity
+result	noun	outcome, consequence, effect, product, conclusion, finding
+option	noun	choice, alternative, possibility, selection, preference, variant
+idea	noun	thought, concept, notion, plan, suggestion, proposal
+mistake	noun	error, slip, blunder, fault, oversight, flaw
+issue	noun	problem, matter, concern, topic, question, complication
+question	noun	query, inquiry, issue, matter, doubt, problem
+answer	noun	reply, response, solution, explanation, feedback, resolution
+solution	noun	answer, fix, resolution, remedy, way out, key
+goal	noun	aim, objective, target, purpose, ambition, intention
+plan	noun	strategy, scheme, proposal, program, outline, design
+project	noun	plan, venture, undertaking, task, assignment, initiative
+work	noun	job, labor, task, effort, employment, duty
+job	noun	work, position, task, role, occupation, career
+process	noun	procedure, method, operation, course, system, workflow
+way	noun	method, manner, approach, path, route, means
+method	noun	approach, way, technique, procedure, process, system
+approach	noun	method, strategy, way, technique, style, attitude
+reason	noun	cause, motive, purpose, explanation, basis, grounds
+cause	noun	reason, source, origin, root, basis, motive
+effect	noun	result, impact, outcome, consequence, influence, impression
+impact	noun	effect, influence, impression, consequence, force, collision
+condition	noun	state, requirement, term, circumstance, situation, shape
+requirement	noun	need, condition, demand, necessity, prerequisite, rule
+rule	noun	regulation, law, principle, guideline, policy, standard
+law	noun	rule, regulation, statute, act, principle, legislation
+order	noun	sequence, arrangement, command, request, structure, purchase
+system	noun	structure, method, setup, arrangement, network, framework
+structure	noun	framework, arrangement, organization, system, layout, form
+part	noun	piece, section, portion, component, segment, share
+piece	noun	part, bit, portion, fragment, section, slice
+element	noun	component, part, factor, piece, feature, unit
+detail	noun	feature, point, aspect, particular, element, fact
+feature	noun	characteristic, function, aspect, quality, property, trait
+quality	noun	standard, property, feature, trait, grade, excellence
+advantage	noun	benefit, edge, strength, plus, gain, upside
+disadvantage	noun	drawback, downside, weakness, minus, flaw, handicap
+benefit	noun	advantage, gain, profit, perk, value, plus
+risk	noun	danger, threat, hazard, chance, uncertainty, exposure
+danger	noun	risk, threat, hazard, peril, menace, jeopardy
+opportunity	noun	chance, possibility, opening, option, prospect, occasion
+chance	noun	opportunity, possibility, luck, probability, risk, odds
+ability	noun	skill, capacity, talent, power, capability, competence
+skill	noun	ability, talent, expertise, competence, craft, technique
+experience	noun	knowledge, practice, background, skill, event, encounter
+knowledge	noun	understanding, information, expertise, awareness, learning, wisdom
+information	noun	data, details, facts, knowledge, news, material
+data	noun	information, facts, figures, statistics, details, records
+fact	noun	truth, detail, reality, point, certainty, evidence
+event	noun	occasion, incident, occurrence, happening, affair, episode
+case	noun	instance, example, situation, matter, occasion, lawsuit
+situation	noun	circumstances, state, condition, position, case, scenario
+state	noun	condition, situation, status, shape, mode, nation
+change	noun	shift, alteration, adjustment, modification, switch, variation
+improvement	noun	enhancement, upgrade, progress, advance, refinement, gain
+growth	noun	increase, development, expansion, rise, progress, gain
+progress	noun	advance, development, improvement, growth, headway, movement
+success	noun	achievement, victory, triumph, win, accomplishment, prosperity
+failure	noun	defeat, breakdown, collapse, flop, loss, setback
+beginning	noun	start, opening, outset, origin, launch, dawn
+start	noun	beginning, opening, launch, outset, kickoff, onset
+end	noun	finish, conclusion, close, ending, limit, edge
+middle	noun	center, midpoint, core, heart, halfway point
+deadline	noun	due date, time limit, cutoff, target date, limit
+time	noun	period, moment, occasion, hour, era, duration
+moment	noun	instant, second, minute, point, time, occasion
+period	noun	time, phase, stage, era, term, span
+stage	noun	phase, step, period, level, point, platform
+step	noun	stage, move, action, phase, measure, pace
+level	noun	degree, stage, rank, grade, tier, height
+size	noun	dimensions, scale, extent, volume, magnitude, proportions
+amount	noun	quantity, sum, total, volume, number, measure
+number	noun	figure, digit, amount, count, quantity, total
+price	noun	cost, rate, fee, charge, value, amount
+cost	noun	price, expense, charge, fee, rate, outlay
+money	noun	cash, funds, currency, capital, finances, wealth
+income	noun	earnings, revenue, salary, pay, profit, wages
+profit	noun	gain, earnings, return, revenue, benefit, income
+place	noun	location, spot, site, position, area, venue
+space	noun	room, area, gap, capacity, expanse, distance
+area	noun	region, zone, section, field, space, district
+field	noun	area, domain, sphere, discipline, sector, meadow
+direction	noun	way, course, path, guidance, route, orientation
+path	noun	route, way, track, trail, course, road
+road	noun	street, route, way, highway, path, lane
+border	noun	boundary, edge, frontier, margin, limit, rim
+edge	noun	border, rim, margin, boundary, side, advantage
+center	noun	middle, core, heart, hub, focus, midpoint
+basis	noun	foundation, base, ground, core, principle, reason
+base	noun	foundation, bottom, basis, support, core, headquarters
+type	noun	kind, sort, category, class, form, variety
+kind	noun	type, sort, variety, class, category, form
+form	noun	shape, type, structure, kind, format, document
+shape	noun	form, outline, figure, structure, condition, pattern
+example	noun	instance, sample, case, illustration, model, specimen
+sample	noun	example, specimen, model, taste, selection, trial
+template	noun	pattern, model, format, layout, blueprint, mold
+layout	noun	arrangement, design, format, structure, plan, composition
+draft	noun	outline, sketch, version, plan, rough copy
+image	noun	picture, photo, illustration, graphic, figure, likeness
+picture	noun	image, photo, illustration, drawing, painting, shot
+color	noun	shade, hue, tone, tint, pigment, dye
+style	noun	manner, design, fashion, approach, look, tone
+text	noun	content, words, copy, passage, writing, script
+word	noun	term, expression, name, remark, promise, statement
+phrase	noun	expression, saying, wording, term, idiom, clause
+name	noun	title, label, term, designation, reputation, brand
+title	noun	heading, name, headline, label, caption, rank
+list	noun	record, catalog, register, index, inventory, lineup
+table	noun	chart, grid, list, desk, counter, schedule
+document	noun	file, record, paper, report, form, certificate
+report	noun	account, summary, statement, review, record, description
+summary	noun	overview, outline, recap, digest, synopsis, abstract
+overview	noun	summary, outline, survey, review, recap, snapshot
+description	noun	account, explanation, portrayal, summary, outline, details
+explanation	noun	clarification, description, reason, account, justification, interpretation
+comment	noun	remark, note, observation, feedback, statement, opinion
+note	noun	message, memo, reminder, comment, record, remark
+feedback	noun	response, comments, reaction, review, criticism, input
+opinion	noun	view, belief, judgment, thought, stance, perspective
+view	noun	opinion, perspective, sight, outlook, scene, belief
+conclusion	noun	end, result, decision, outcome, finding, judgment
+advice	noun	guidance, recommendation, suggestion, tip, counsel, help
+suggestion	noun	proposal, recommendation, idea, advice, hint, tip
+proposal	noun	suggestion, plan, offer, bid, recommendation, pitch
+request	noun	appeal, demand, inquiry, application, petition, call
+message	noun	note, communication, memo, notice, text, word
+news	noun	information, report, update, announcement, word, headlines
+letter	noun	message, note, mail, character, memo, correspondence
+meeting	noun	gathering, session, conference, appointment, discussion, assembly
+discussion	noun	conversation, debate, talk, dialogue, exchange, review
+conversation	noun	talk, chat, discussion, dialogue, exchange
+argument	noun	dispute, debate, reason, quarrel, case, claim
+agreement	noun	deal, contract, arrangement, consent, accord, understanding
+decision	noun	choice, conclusion, ruling, judgment, verdict, resolution
+choice	noun	option, selection, decision, pick, alternative, preference
+person	noun	individual, human, someone, character, figure, soul
+people	noun	persons, individuals, folks, public, humans, society
+friend	noun	companion, pal, buddy, ally, mate, acquaintance
+colleague	noun	coworker, associate, teammate, partner, peer
+employee	noun	worker, staff member, team member, hire, associate
+expert	noun	specialist, professional, authority, master, guru, pro
+manager	noun	supervisor, boss, director, head, leader, administrator
+boss	noun	manager, supervisor, chief, head, employer, leader
+leader	noun	head, chief, director, manager, captain, guide
+team	noun	group, crew, squad, staff, unit, side
+group	noun	team, collection, set, cluster, band, category
+company	noun	business, firm, corporation, organization, enterprise, group
+business	noun	company, firm, trade, commerce, enterprise, industry
+organization	noun	company, institution, association, body, group, structure
+customer	noun	client, buyer, shopper, consumer, patron, user
+client	noun	customer, buyer, patron, user, consumer, account
+user	noun	customer, client, consumer, operator, member, visitor
+partner	noun	associate, ally, colleague, companion, collaborator, spouse
+author	noun	writer, creator, originator, novelist, composer, maker
+member	noun	participant, associate, part, fellow, subscriber, affiliate
+child	noun	kid, youngster, toddler, minor, infant, youth
+family	noun	relatives, household, kin, clan, folks, relations
+home	noun	house, residence, dwelling, household, place, apartment
+house	noun	home, residence, dwelling, building, property, household
+city	noun	town, metropolis, municipality, urban area, downtown
+country	noun	nation, state, land, homeland, countryside, territory
+world	noun	earth, globe, planet, universe, society, realm
+life	noun	existence, living, lifetime, being, energy, vitality
+story	noun	tale, narrative, account, report, plot, anecdote
+book	noun	volume, publication, title, novel, text, work
+article	noun	piece, story, report, essay, item, post
+language	noun	tongue, speech, dialect, wording, vocabulary, terminology
+thought	noun	idea, notion, belief, opinion, reflection, consideration
+feeling	noun	emotion, sense, sensation, mood, impression, sentiment
+emotion	noun	feeling, sentiment, passion, reaction, mood, sensation
+mood	noun	temper, spirit, atmosphere, feeling, humor, state of mind
+wish	noun	desire, hope, longing, want, dream, request
+dream	noun	vision, fantasy, hope, wish, ambition, aspiration
+hope	noun	wish, expectation, optimism, faith, dream, prospect
+joy	noun	happiness, delight, pleasure, bliss, cheer, gladness
+happiness	noun	joy, delight, contentment, pleasure, cheer, bliss
+pleasure	noun	enjoyment, delight, joy, satisfaction, fun, happiness
+fear	noun	dread, terror, fright, anxiety, worry, alarm
+worry	noun	concern, anxiety, fear, trouble, stress, unease
+pain	noun	ache, suffering, hurt, discomfort, soreness, agony
+interest	noun	curiosity, attention, concern, hobby, stake, appeal
+attention	noun	focus, notice, care, concentration, awareness, regard
+care	noun	attention, caution, concern, support, protection, worry
+help	noun	assistance, support, aid, guidance, relief, service
+support	noun	help, backing, assistance, aid, encouragement, foundation
+protection	noun	safety, defense, security, shelter, cover, shield
+safety	noun	security, protection, well-being, shelter, welfare
+security	noun	safety, protection, defense, stability, assurance, safeguard
+trust	noun	confidence, faith, belief, reliance, credit, assurance
+respect	noun	regard, esteem, admiration, honor, courtesy, consideration
+responsibility	noun	duty, obligation, accountability, charge, task, burden
+duty	noun	responsibility, obligation, task, job, role, assignment
+freedom	noun	liberty, independence, autonomy, choice, release, latitude
+power	noun	strength, force, energy, authority, control, ability
+strength	noun	power, force, might, energy, toughness, advantage
+energy	noun	power, strength, vitality, drive, vigor, force
+speed	noun	pace, velocity, rate, quickness, swiftness, tempo
+movement	noun	motion, shift, action, progress, activity, campaign
+action	noun	act, step, move, deed, activity, measure
+behavior	noun	conduct, manner, actions, attitude, habits, demeanor
+habit	noun	routine, custom, practice, pattern, tendency, ritual
+character	noun	personality, nature, figure, role, quality, temperament
+role	noun	part, function, position, job, duty, capacity
+function	noun	purpose, role, feature, task, operation, capability
+purpose	noun	goal, aim, reason, intention, function, objective
+meaning	noun	sense, significance, definition, point, purpose, message
+sense	noun	feeling, meaning, awareness, logic, judgment, perception
+essence	noun	core, nature, heart, substance, spirit, gist
+content	noun	material, substance, text, subject matter, information, matter
+topic	noun	subject, theme, issue, matter, question, point
+subject	noun	topic, theme, matter, issue, field, discipline
+thing	noun	object, item, matter, stuff, article, element
+object	noun	item, thing, article, target, goal, entity
+item	noun	thing, object, article, entry, piece, product
+product	noun	item, goods, output, creation, result, merchandise
+service	noun	assistance, support, help, facility, maintenance, utility
+tool	noun	instrument, device, utility, implement, means, aid
+device	noun	gadget, tool, machine, instrument, appliance, equipment
+app	noun	application, program, software, tool, utility
+program	noun	application, software, plan, schedule, course, agenda
+setting	noun	option, configuration, preference, environment, context, scene
+parameter	noun	setting, value, variable, factor, limit, criterion
+indicator	noun	sign, signal, measure, metric, marker, gauge
+button	noun	control, switch, key, knob, toggle
+screen	noun	display, monitor, view, panel, page, window
+page	noun	sheet, screen, leaf, side, site
+section	noun	part, segment, portion, area, division, chapter
+block	noun	section, unit, chunk, module, segment, obstacle
+link	noun	connection, tie, reference, bond, relation, association
+version	noun	edition, release, variant, form, update, draft
+release	noun	launch, version, issue, publication, rollout, update
+launch	noun	start, release, introduction, debut, rollout, kickoff
+search	noun	hunt, lookup, quest, exploration, inquiry, pursuit
+access	noun	entry, admission, permission, availability, approach, entrance
+connection	noun	link, relation, bond, association, tie, contact
+relationship	noun	connection, bond, link, relation, association, tie
+difference	noun	distinction, contrast, gap, variation, disparity, change
+similarity	noun	resemblance, likeness, parallel, correspondence, closeness
+comparison	noun	contrast, analogy, parallel, evaluation, review, likeness
+analysis	noun	study, examination, review, evaluation, breakdown, assessment
+research	noun	study, investigation, analysis, exploration, inquiry, survey
+test	noun	trial, check, exam, experiment, assessment, quiz
+training	noun	instruction, practice, coaching, education, preparation, exercise
+lesson	noun	class, session, lecture, tutorial, teaching, example
+effort	noun	attempt, work, energy, struggle, exertion, push
+attempt	noun	try, effort, shot, bid, go, endeavor
+limit	noun	boundary, cap, restriction, maximum, threshold, edge
+restriction	noun	limit, constraint, limitation, rule, control, ban
+obstacle	noun	barrier, hurdle, block, difficulty, hindrance, problem
+difficulty	noun	problem, trouble, challenge, hardship, complication, obstacle
+challenge	noun	difficulty, problem, test, obstacle, task, trial
+conflict	noun	dispute, clash, disagreement, fight, struggle, tension
+balance	noun	stability, equilibrium, harmony, remainder, evenness, poise
+standard	noun	norm, criterion, benchmark, guideline, level, rule
+value	noun	worth, importance, benefit, price, merit, usefulness
+priority	noun	preference, importance, precedence, urgency, focus
+expectation	noun	hope, anticipation, prediction, assumption, belief, outlook
+impression	noun	feeling, sense, effect, impact, idea, notion
+influence	noun	effect, impact, power, control, sway, authority
+trend	noun	tendency, pattern, direction, fashion, movement, shift
+tip	noun	hint, advice, suggestion, pointer, clue, trick
+signal	noun	sign, indication, cue, alert, warning, message
+sign	noun	signal, indication, symbol, mark, notice, clue
+symbol	noun	sign, icon, emblem, mark, token, figure
+gift	noun	present, donation, offering, talent, bonus, contribution
+holiday	noun	vacation, break, celebration, festival, day off, leave
+rest	noun	break, relaxation, pause, remainder, sleep, downtime
+break	noun	pause, rest, gap, interruption, recess, crack
+trip	noun	journey, tour, outing, voyage, excursion, visit
+journey	noun	trip, voyage, travel, tour, trek, passage
+food	noun	meal, nourishment, cuisine, fare, dish, provisions
+health	noun	well-being, fitness, wellness, condition, strength, vitality
+design	noun	layout, plan, pattern, style, concept, blueprint
+interface	noun	screen, front end, connection, boundary, console, panel
+component	noun	part, element, piece, module, unit, ingredient
+icon	noun	symbol, image, pictogram, emblem, sign, glyph
+spacing	noun	gap, margin, padding, distance, interval, separation
+font	noun	typeface, type, lettering, script, character set
+grid	noun	layout, mesh, matrix, network, lattice, framework
+background	noun	backdrop, setting, context, history, experience, scenery
+shadow	noun	shade, darkness, silhouette, outline, trace, gloom
+frame	noun	border, structure, outline, casing, skeleton, mount
+outline	noun	summary, sketch, draft, contour, plan, silhouette
+prototype	noun	model, mockup, sample, draft, original, pilot
+concept	noun	idea, notion, theory, principle, plan, vision
+strategy	noun	plan, approach, tactic, policy, method, scheme
+hypothesis	noun	theory, assumption, guess, premise, proposition, idea
+metric	noun	measure, indicator, standard, benchmark, statistic, gauge
+audience	noun	viewers, listeners, crowd, public, readers, spectators
+market	noun	marketplace, trade, demand, industry, store, exchange
+demand	noun	need, request, requirement, call, desire, claim
+industry	noun	sector, business, field, trade, manufacturing, market
+budget	noun	funds, allowance, allocation, finances, resources, plan
+resource	noun	asset, supply, source, means, reserve, material
+schedule	noun	timetable, plan, agenda, calendar, program, timeline
+queue	noun	line, sequence, row, waiting list, chain, backlog
+invitation	noun	invite, request, offer, call, welcome
+presentation	noun	talk, demonstration, display, show, lecture, pitch
+update	noun	upgrade, revision, news, refresh, patch, report
+error	noun	mistake, fault, bug, flaw, slip, inaccuracy
+bug	noun	defect, error, glitch, fault, flaw, issue
+review	noun	evaluation, assessment, analysis, critique, inspection, report
+check	noun	inspection, test, examination, review, audit, verification
+control	noun	command, power, authority, regulation, management, restraint
+click	verb	press, tap, select, hit, snap
+enter	verb	input, type, go in, insert, join, access
+upload	verb	send, transfer, post, submit, load, publish
+download	verb	save, fetch, get, transfer, load, retrieve
+copy	verb	duplicate, replicate, reproduce, clone, imitate, mirror
+paste	verb	insert, stick, glue, attach, place
+align	verb	line up, straighten, arrange, adjust, match, coordinate
+attend	verb	go to, be present at, visit, join, participate in, show up at
+match	verb	fit, suit, correspond, equal, pair, agree
+differ	verb	vary, contrast, disagree, diverge, conflict
+fit	verb	suit, match, belong, conform, adapt, install
+mean	verb	signify, indicate, intend, imply, suggest, represent
+adapt	verb	adjust, modify, alter, tailor, change, conform
+apply	verb	use, employ, implement, put on, request, exercise
+cost	verb	be priced at, come to, amount to, sell for, total
+attach	verb	connect, fasten, add, join, link, fix
+disable	verb	turn off, deactivate, switch off, block, stop, shut down
+enable	verb	allow, activate, turn on, permit, empower, switch on
+attract	verb	draw, appeal to, pull, engage, interest, lure
+involve	verb	include, engage, require, concern, entail, contain
+motivate	verb	inspire, encourage, drive, stimulate, prompt, push
+inspire	verb	motivate, encourage, stimulate, influence, spark, energize
+praise	verb	compliment, commend, applaud, admire, honor, celebrate
+criticize	verb	fault, condemn, judge, attack, blame
+apologize	verb	say sorry, express regret, ask forgiveness, make amends
+forgive	verb	pardon, excuse, absolve, overlook, let off, condone
+thank	verb	express gratitude, appreciate, acknowledge, credit, be grateful
+invite	verb	ask, request, welcome, summon, call, encourage
+travel	verb	journey, go, tour, move, commute, voyage
+sleep	verb	rest, nap, doze, slumber, snooze, drowse
+eat	verb	consume, dine, have, devour, snack, feed
+drink	verb	sip, swallow, gulp, consume, down, have
+laugh	verb	chuckle, giggle, smile, grin, snicker, roar
+cry	verb	weep, sob, shout, yell, call, wail
+shout	verb	yell, scream, cry, call, holler, roar
+wonder	verb	ponder, question, think, marvel, speculate, ask
+realize	verb	understand, recognize, notice, see, grasp, achieve
+recognize	verb	identify, know, acknowledge, realize, recall, admit
+ensure	verb	guarantee, secure, confirm, make sure, assure, safeguard
+promise	verb	pledge, vow, guarantee, swear, commit, assure
+encourage	verb	support, inspire, motivate, urge, promote, cheer
+affect	verb	influence, impact, change, alter, touch, shape
+depend	verb	rely, count, hinge, rest, trust, lean
+exist	verb	be, live, occur, survive, remain, be present
+remain	verb	stay, continue, persist, last, linger, endure
+occur	verb	happen, take place, arise, appear, exist, come about
+launch	verb	start, release, begin, introduce, initiate, fire
+release	verb	free, publish, launch, issue, let go, discharge
+publish	verb	release, issue, print, post, announce, distribute
+submit	verb	send, present, hand in, file, deliver, offer
+deliver	verb	bring, provide, supply, hand over, ship, carry
+implement	verb	carry out, apply, execute, perform, enforce, deploy
+maintain	verb	keep, preserve, sustain, support, uphold, service
+monitor	verb	watch, track, observe, check, supervise, follow
+track	verb	follow, monitor, trace, record, pursue, log
+schedule	verb	plan, arrange, book, organize, set, time
+estimate	verb	guess, calculate, assess, judge, approximate, gauge
+evaluate	verb	assess, judge, review, measure, appraise, rate
+adjust	verb	adapt, modify, alter, tune, change, correct
+modify	verb	change, alter, adjust, revise, adapt, edit
+edit	verb	revise, modify, correct, rewrite, change, polish
+select	verb	choose, pick, opt for, elect, prefer, single out
+collect	verb	gather, assemble, accumulate, compile, save, pick up
+gather	verb	collect, assemble, meet, accumulate, pick, understand
+focus	verb	concentrate, center, direct, aim, zero in, fix
+ignore	verb	disregard, overlook, neglect, skip, dismiss, pass over
+skip	verb	omit, miss, pass, bypass, jump, leave out
+miss	verb	skip, overlook, lose, lack, long for, fail
+fail	verb	flop, collapse, miss, break down, fall short, neglect
+win	verb	succeed, triumph, gain, earn, achieve, prevail
+succeed	verb	win, prosper, achieve, thrive, manage, flourish
+struggle	verb	fight, strive, battle, wrestle, labor, grapple
+relax	verb	rest, unwind, loosen, calm down, ease, chill
+smile	verb	grin, beam, smirk, laugh, glow
+surprise	verb	amaze, astonish, shock, startle, stun, astound
+impress	verb	amaze, affect, move, influence, dazzle, strike
+confuse	verb	puzzle, baffle, bewilder, perplex, mix up, muddle
+bother	verb	annoy, disturb, trouble, worry, irritate, upset
+annoy	verb	irritate, bother, upset, disturb, frustrate, pester
+hurt	verb	injure, harm, wound, damage, ache, upset
+damage	verb	harm, hurt, break, ruin, spoil, impair
+waste	verb	squander, misuse, throw away, lose, spend, burn
+borrow	verb	take, use, adopt, obtain
+lend	verb	loan, give, advance, provide, grant
+wear	verb	put on, dress in, have on, sport, carry, display
+carry	verb	bring, hold, transport, bear, move, haul
+cover	verb	protect, hide, include, coat, shield, wrap
+hide	verb	conceal, cover, bury, mask, disguise, stash
+reveal	verb	show, disclose, uncover, expose, display, unveil
+gladly	adv	happily, willingly, with pleasure, readily, cheerfully, eagerly
+politely	adv	courteously, respectfully, kindly, civilly, graciously
+sincerely	adv	honestly, genuinely, truly, earnestly, wholeheartedly
+absolutely	adv	completely, totally, definitely, certainly, entirely, utterly
+practically	adv	almost, nearly, virtually, essentially, basically, in effect
+temporarily	adv	briefly, for now, for a while, for the moment, provisionally
+simultaneously	adv	at once, together, concurrently, at the same time, in parallel
+undoubtedly	adv	certainly, definitely, surely, without doubt, unquestionably, clearly
+barely	adv	hardly, scarcely, just, only just, narrowly, slightly
+glad	adj	happy, pleased, delighted, cheerful, thankful, content
+upset	adj	distressed, unhappy, troubled, annoyed, hurt, bothered
+afraid	adj	scared, frightened, fearful, anxious, worried, terrified
+grateful	adj	thankful, appreciative, obliged, indebted, pleased
+curious	adj	inquisitive, interested, nosy, eager, questioning, odd
+confident	adj	sure, certain, self-assured, positive, bold, secure
+polished	adj	refined, finished, elegant, smooth, glossy, flawless
+neat	adj	tidy, orderly, clean, organized, trim, smart
+messy	adj	untidy, cluttered, disorganized, sloppy, chaotic, dirty
+plain	adj	simple, clear, basic, ordinary, obvious, unadorned
+fancy	adj	elaborate, ornate, decorative, luxurious, stylish, lavish
+elegant	adj	graceful, stylish, refined, sophisticated, classy, tasteful
+minimal	adj	least, smallest, slight, basic, limited, negligible
+maximum	adj	highest, greatest, top, utmost, peak, most
+optimal	adj	best, ideal, optimum, perfect, most favorable
+robust	adj	strong, sturdy, solid, resilient, durable, healthy
+fragile	adj	delicate, breakable, brittle, weak, frail, flimsy
+steady	adj	stable, constant, firm, even, regular, consistent
+rapid	adj	fast, quick, swift, speedy, brisk, hasty
+gradual	adj	slow, steady, progressive, gentle, step-by-step, incremental
+vague	adj	unclear, ambiguous, hazy, fuzzy, indefinite, imprecise
+subtle	adj	delicate, slight, faint, understated, fine, nuanced
+bold	adj	daring, brave, confident, strong, striking, vivid
+vivid	adj	bright, vibrant, colorful, clear, intense, striking
+dull	adj	boring, bland, drab, flat, tedious, blunt
+crowded	adj	packed, busy, full, congested, cramped, jammed
+spacious	adj	roomy, large, open, wide, airy, ample
+remote	adj	distant, far, isolated, secluded, faraway, outlying
+nearby	adj	close, neighboring, adjacent, local, near, surrounding
+foreign	adj	overseas, international, alien, external, unfamiliar, exotic
+local	adj	regional, nearby, native, neighborhood, community, domestic
+global	adj	worldwide, international, universal, overall, general, total
+digital	adj	electronic, online, virtual, computerized, numeric
+manual	adj	hand-operated, physical, by hand, human, non-automatic
+automatic	adj	automated, self-acting, mechanical, instinctive, reflex, routine
+tough	adj	hard, strong, difficult, durable, rugged, strict
+tight	adj	firm, snug, close, secure, narrow, strict
+loose	adj	slack, baggy, free, relaxed, detached, vague
+dry	adj	arid, parched, dehydrated, dull, plain, thirsty
+wet	adj	damp, soaked, moist, rainy, drenched, soggy
+crazy	adj	wild, insane, mad, absurd, foolish, ridiculous
+silly	adj	foolish, ridiculous, absurd, childish, goofy, playful
+wise	adj	sensible, prudent, smart, thoughtful, insightful, shrewd
+mature	adj	adult, grown, developed, experienced, ripe, sensible
+decent	adj	good, respectable, proper, fair, adequate, kind
+proper	adj	correct, suitable, appropriate, right, fitting, decent
+mutual	adj	shared, joint, common, reciprocal, collective
+annual	adj	yearly, once a year, per year, twelve-monthly
+daily	adj	everyday, day-to-day, regular, routine, common
+weekly	adj	once a week, every week, per week, seven-day
+gap	noun	space, opening, break, hole, difference, interval
+pattern	noun	design, model, template, arrangement, motif, trend
+theme	noun	topic, subject, motif, idea, style, concept
+tone	noun	mood, style, pitch, shade, attitude, voice
+vision	noun	sight, dream, idea, image, foresight, concept
+insight	noun	understanding, awareness, perception, observation, intuition, finding
+scope	noun	range, extent, reach, scale, breadth, span
+range	noun	scope, variety, span, extent, selection, spectrum
+scale	noun	size, extent, scope, range, level, measure
+rate	noun	speed, pace, price, ratio, level, fee
+ratio	noun	proportion, rate, percentage, relation, fraction, balance
+average	noun	mean, norm, standard, midpoint, median, typical value
+majority	noun	most, bulk, mass, larger part, greater number
+variety	noun	range, diversity, assortment, type, selection, mix
+source	noun	origin, cause, root, supplier, reference, basis
+target	noun	goal, aim, objective, mark, focus, victim
+focus	noun	center, emphasis, attention, priority, concentration, core
+context	noun	setting, background, situation, circumstances, environment, frame
+environment	noun	surroundings, setting, habitat, atmosphere, context, nature
+atmosphere	noun	mood, air, environment, feeling, ambience, climate
+culture	noun	society, customs, traditions, civilization, heritage, lifestyle
+community	noun	society, group, neighborhood, public, population, association
+society	noun	community, public, culture, civilization, association, people

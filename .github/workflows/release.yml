@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Version from tag
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Check
+        run: ./scripts/check.sh
+      - name: Build
+        env:
+          UNIVERSAL: "1"
+          LANGSWITCH_VERSION: ${{ steps.version.outputs.value }}
+          LANGSWITCH_BUILD: ${{ github.run_number }}
+        run: ./scripts/build.sh
+      - name: Package
+        run: ./scripts/package.sh "${{ steps.version.outputs.value }}"
+      - name: Release notes
+        run: |
+          version="${{ steps.version.outputs.value }}"
+          # The section of CHANGELOG.md for this version, without its heading.
+          awk -v v="$version" '
+            /^## \[/ { printing = index($0, "[" v "]") > 0; next }
+            printing { print }
+          ' CHANGELOG.md > notes.md
+          {
+            echo
+            echo "---"
+            echo "Сборка подписана ad hoc, без нотарификации. При первом запуске: Системные настройки → Конфиденциальность и безопасность → «Всё равно открыть». Контрольные суммы — в SHA256SUMS.txt."
+          } >> notes.md
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          case "$GITHUB_REF_NAME" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/release/* \
+            --title "LangSwitch ${{ steps.version.outputs.value }}" --notes-file notes.md "${flags[@]}"

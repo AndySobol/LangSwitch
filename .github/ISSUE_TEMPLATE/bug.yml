@@ -1,0 +1,43 @@
+name: Ошибка
+description: LangSwitch исправил не то, не исправил нужное или повёл себя неожиданно
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Не вставляйте настоящую переписку и личные данные — замените текст похожим примером.
+  - type: input
+    id: typed
+    attributes:
+      label: Что вы набрали
+      placeholder: "ghbdtn vbh"
+    validations:
+      required: true
+  - type: input
+    id: got
+    attributes:
+      label: Что получилось
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: Что ожидалось
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Приложение и поле
+      placeholder: "Chrome 157, адресная строка"
+  - type: input
+    id: versions
+    attributes:
+      label: Версии LangSwitch и macOS
+      placeholder: "LangSwitch 1.0.0, macOS 15.7"
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Подробности
+      description: Раскладки, воспроизводится ли каждый раз, что было до этого
