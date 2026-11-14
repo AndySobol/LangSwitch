@@ -198,8 +198,8 @@ package struct LayoutDecider {
         typed: String, typedLanguage: Language, alternative: String, context: Context
     ) -> Bool {
         let otherLanguage = typedLanguage.other
-        guard typed.count >= 4, typed.count == alternative.count, !context.manualSwitch,
-            !context.confirms(typedLanguage), alternative.allSatisfy({ otherLanguage.isLetter($0) })
+        guard typed.count >= 4, typed.count == alternative.count, !context.confirms(typedLanguage),
+            alternative.allSatisfy({ otherLanguage.isLetter($0) })
         else { return false }
         let own = typed.lowercased()
         let other = alternative.lowercased()

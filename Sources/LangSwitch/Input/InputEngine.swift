@@ -420,6 +420,15 @@ final class InputEngine {
                     pendingLayout = nil
                 }
             }
+            if session?.isUnanchored == true, session?.currentText.isEmpty == true {
+                // The user deleted past what we had seen. Ask the field where the caret landed: at a
+                // word start everything works as usual; inside a word nothing must be touched.
+                switch Accessibility.caretContext() {
+                case .wordStart: session?.anchor()
+                case .insideWord: session?.taint()
+                case .unknown: break
+                }
+            }
             session?.character(stroke, produced: produced)
             counters.characters += 1
             diagnostics.keys += 1

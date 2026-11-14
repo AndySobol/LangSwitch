@@ -128,6 +128,24 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
         #expect(simulator.replacements.isEmpty)
     }
 
+    @Test func retypingAfterErasingEverythingStillConverts() {
+        // Type, erase further back than the session saw, type again: the layout must still be fixed.
+        var simulator = TypingSimulator(engine: makeEngine())
+        simulator.backspace()
+        simulator.backspace()
+        simulator.press(keysFor: "привет ", on: .russian)
+        #expect(simulator.document == "привет ")
+
+        // Spelling is not guessed for a chunk that may be the tail of an existing word …
+        simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.backspace()
+        simulator.type("тесст ")
+        #expect(simulator.document == "тесст ")
+        // … but the next word is a whole word again.
+        simulator.type("тесст ")
+        #expect(simulator.document == "тесст тест ")
+    }
+
     @Test func manualLayoutSwitchInsideAWordDisablesCorrection() {
         var simulator = TypingSimulator(engine: makeEngine())
         simulator.press(keysFor: "при", on: .russian)

@@ -60,6 +60,32 @@ enum Accessibility {
         return text
     }
 
+    enum CaretContext {
+        /// The caret is at the very start of the field or right after whitespace.
+        case wordStart
+        /// The caret follows a letter, digit or punctuation: text continues an existing word.
+        case insideWord
+        /// The application does not say.
+        case unknown
+    }
+
+    /// What is immediately before the caret in the focused field.
+    static func caretContext(timeout: Float = 0.05) -> CaretContext {
+        guard let element = focusedElement(timeout: timeout), let range = selectedRange(of: element),
+            range.length == 0, range.location >= 0
+        else { return .unknown }
+        if range.location == 0 { return .wordStart }
+        var before = CFRange(location: range.location - 1, length: 1)
+        guard let parameter = AXValueCreate(.cfRange, &before) else { return .unknown }
+        var value: CFTypeRef?
+        guard
+            AXUIElementCopyParameterizedAttributeValue(
+                element, kAXStringForRangeParameterizedAttribute as CFString, parameter, &value) == .success,
+            let text = value as? String, let character = text.last
+        else { return .unknown }
+        return character.isWhitespace || character.isNewline ? .wordStart : .insideWord
+    }
+
     /// True when the focused element accepts typing.
     static func focusIsEditable(timeout: Float = 0.25) -> Bool {
         guard let element = focusedElement(timeout: timeout) else { return false }

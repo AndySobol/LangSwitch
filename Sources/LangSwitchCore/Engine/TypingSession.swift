@@ -86,6 +86,10 @@ package struct TypingSession {
     private var typed: [Typed] = []
     /// The chunk contains something the session cannot reproduce; leave it alone.
     private var tainted = false
+    /// The chunk may have started in the middle of existing text (the user deleted further back than
+    /// the session had seen). The keys typed since are still known exactly, so the layout can be
+    /// fixed; spelling and punctuation need the whole word and are left alone.
+    private var unanchored = false
     /// The user converted this chunk by hand; do not second-guess it at the boundary.
     private var manuallyConverted = false
     /// The chunk was already converted while being typed.
@@ -107,6 +111,10 @@ package struct TypingSession {
     /// Text of the chunk being typed, as it appears in the field.
     package var currentText: String { String(typed.map(\.character)) }
     package var isTainted: Bool { tainted }
+    package var isUnanchored: Bool { unanchored }
+
+    /// The caret is known to be at the start of a word after all.
+    package mutating func anchor() { unanchored = false }
     package var isAtSentenceStart: Bool { sentenceStart }
     /// Lower-case previous word, when it directly precedes the caret's chunk.
     package var previousWord: String? {
@@ -134,6 +142,7 @@ package struct TypingSession {
         tainted = false
         manuallyConverted = false
         earlyConverted = false
+        unanchored = false
         justCorrected = false
         sentenceStart = false
         if resetContext { context = LayoutDecider.Context() }
@@ -227,12 +236,12 @@ package struct TypingSession {
                 }
                 tainted = false
             } else {
-                tainted = true
+                unanchored = true
             }
             manuallyConverted = false
             return .pass
         }
-        tainted = true
+        unanchored = true
         return .pass
     }
 
@@ -246,6 +255,7 @@ package struct TypingSession {
             tainted = false
             manuallyConverted = false
             earlyConverted = false
+            unanchored = false
             if history.count > 8 { history.removeFirst(history.count - 8) }
         }
         guard !typed.isEmpty else {
@@ -265,15 +275,21 @@ package struct TypingSession {
         let uniform = typed.allSatisfy { $0.layoutID == layoutID }
         var result = ChunkResult(text: text, language: Language.dominant(in: text))
 
+        // An unanchored chunk gets its layout fixed and nothing else.
+        let options =
+            unanchored
+            ? CorrectionOptions(
+                layout: self.options.layout, spelling: false, punctuation: false, capitalization: false)
+            : self.options
         if !tainted, uniform, !options.isEmpty {
             var input = ChunkInput(typed: text, typedLanguage: layouts.current.language)
             if !manuallyConverted, !earlyConverted, let alternative = layouts.alternative {
                 input.alternative = alternative.render(strokes)
             }
             input.context = context
-            input.sentenceStart = sentenceStart
+            input.sentenceStart = sentenceStart && !unanchored
             input.mayOpenSentence = history.isEmpty
-            input.previousWords = previousWords()
+            input.previousWords = unanchored ? [] : previousWords()
             result = engine.process(input, options: options)
         }
 
