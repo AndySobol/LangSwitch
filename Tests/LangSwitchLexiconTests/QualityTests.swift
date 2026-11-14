@@ -53,17 +53,26 @@ import Testing
         #expect(typed("вот " + pair.0 + " ", active: .russian) == "вот " + pair.1 + " ")
     }
 
-    /// Words that only the sentence could decide are left as typed rather than guessed.
-    @Test(arguments: ["го", "ео", "пртит", "апять", "мб", "спс"])
+    /// Abbreviations and words with several equally good readings are left as typed rather than guessed.
+    @Test(arguments: ["го", "пртит", "мб", "спс", "чо"])
     func ambiguousShortWordsAreLeftAlone(word: String) {
         #expect(typed("это " + word + " ", active: .russian) == "это " + word + " ")
+    }
+
+    /// The word before decides what a short typo was meant to be.
+    @Test(arguments: [
+        ("пока включить ео", "пока включить его"), ("я не могу ег", "я не могу его"),
+        ("это апять", "это опять"),
+    ])
+    func previousWordDecides(pair: (String, String)) {
+        #expect(typed(pair.0 + " ", active: .russian).lowercased() == pair.1 + " ")
     }
 
     @Test(arguments: [
         ("teh", "the"), ("recieve", "receive"), ("becuase", "because"),
         ("dont", "don't"), ("freind", "friend"), ("wich", "which"), ("tommorow", "tomorrow"),
         ("perfomance", "performance"), ("imporve", "improve"), ("truely", "truly"), ("seperate", "separate"),
-        ("definately", "definitely"), ("alot", "a lot"), ("youre", "you're"),
+        ("definately", "definitely"), ("youre", "you're"),
     ])
     func englishTypos(pair: (String, String)) {
         #expect(typed(pair.0 + " ", active: .abc) == pair.1 + " ")

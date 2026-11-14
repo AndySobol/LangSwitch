@@ -19,6 +19,8 @@ package enum ResourceLocator {
 /// The data files bundled with the core module.
 package struct CoreResources: Sendable {
     package var frequency: [Language: FrequencyList] = [:]
+    package var context: [Language: ContextModel] = [:]
+    package var policy: CorrectionPolicy?
     package var terms = TermLexicon()
     package var abbreviations: Set<String> = []
     package var thesaurus: [Language: Thesaurus] = [:]
@@ -40,12 +42,22 @@ package struct CoreResources: Sendable {
     }
 
     /// Reads every bundled file. Missing files leave the corresponding feature empty rather than failing.
-    package static func load() -> CoreResources {
+    ///
+    /// - Parameter generated: also load the data built by `LangSwitchData` (the extended frequency
+    ///   lists and the context models). The tool itself loads without them.
+    package static func load(generated: Bool = true) -> CoreResources {
         var resources = CoreResources()
         for language in Language.allCases {
             let code = language.rawValue
-            resources.frequency[language] = FrequencyList(
-                words: lines("Frequency/\(code).txt").map { $0.lowercased() })
+            let list = FrequencyList(
+                words: lines("Frequency/\(code).txt").map { $0.lowercased() },
+                extended: generated ? lines("Frequency/\(code)-extended.txt") : [])
+            resources.frequency[language] = list
+            if generated, let url = bundle.resourceURL?.appendingPathComponent("Context/\(code).pairs"),
+                let data = try? Data(contentsOf: url, options: .mappedIfSafe)
+            {
+                resources.context[language] = ContextModel(data: data, signature: list.signature)
+            }
             if let synonyms = text("Rules/synonyms-\(code).tsv") {
                 resources.thesaurus[language] = Thesaurus(tsv: synonyms)
             }
@@ -56,6 +68,11 @@ package struct CoreResources: Sendable {
             {
                 resources.trainer.passages[language] = passages
             }
+        }
+        if let url = bundle.resourceURL?.appendingPathComponent("Rules/correction-policy.json"),
+            let data = try? Data(contentsOf: url)
+        {
+            resources.policy = try? CorrectionPolicy(data: data)
         }
         if let terms = text("Terms/terms.tsv") { resources.terms = TermLexicon(tsv: terms) }
         resources.abbreviations = Set(lines("Rules/abbreviations.txt").map { $0.lowercased() })

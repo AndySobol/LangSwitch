@@ -18,8 +18,12 @@ package final class LanguageRuntime {
 
     private let tagger = NLTagger(tagSchemes: [.lexicalClass, .lemma])
 
-    package init(personal: PersonalVocabulary = PersonalVocabulary(), dictionaryFolder: URL? = nil) {
-        let resources = CoreResources.load()
+    /// - Parameter resources: the bundled data; the data-building tool passes a set without the files
+    ///   it is about to generate.
+    package init(
+        personal: PersonalVocabulary = PersonalVocabulary(), dictionaryFolder: URL? = nil,
+        resources: CoreResources = CoreResources.load()
+    ) {
         self.resources = resources
 
         let folder = dictionaryFolder ?? HunspellDictionary.bundledFolder
@@ -45,7 +49,7 @@ package final class LanguageRuntime {
         }
         let vocabulary = Vocabulary(
             dictionary: dictionary, terms: resources.terms,
-            frequency: resources.frequency,
+            frequency: resources.frequency, context: resources.context,
             personal: personal)
         self.vocabulary = vocabulary
         if let hunspell {
@@ -57,16 +61,20 @@ package final class LanguageRuntime {
             var builder = NGramModel.Builder(language: language)
             expanders[language]?.stems(language: language) { builder.add($0) }
             // Everyday word forms carry the endings the stems lack, so they weigh more.
-            let frequent = resources.frequency[language]?.words ?? []
+            let frequent = resources.frequency[language]?.core ?? []
             for (index, word) in frequent.enumerated() { builder.add(word, weight: index < 500 ? 40 : 12) }
             models[language] = builder.build()
         }
 
         let engine = CorrectionEngine(
-            vocabulary: vocabulary, models: models, abbreviations: resources.abbreviations)
+            vocabulary: vocabulary, models: models, abbreviations: resources.abbreviations,
+            policy: resources.policy)
         self.engine = engine
         self.fixer = TextFixer(engine: engine)
-        self.completion = CompletionEngine(frequency: resources.frequency, terms: resources.terms)
+        // Completions are drawn from the curated core: the extension also holds names and rough words.
+        self.completion = CompletionEngine(
+            frequency: resources.frequency.mapValues { FrequencyList(words: Array($0.core)) },
+            terms: resources.terms)
 
         let tagger = self.tagger
         let morphology = Morphology(

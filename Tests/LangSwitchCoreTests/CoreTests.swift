@@ -34,7 +34,7 @@ private func makeEngine(personal: PersonalVocabulary = PersonalVocabulary()) -> 
     ]
     return CorrectionEngine(
         vocabulary: vocabulary, models: models,
-        abbreviations: ["т.е.", "e.g."])
+        abbreviations: ["т.е.", "e.g."], policy: CoreResources.load(generated: false).policy)
 }
 
 /// `#expect` cannot wrap a mutating call, so the call is evaluated first and compared here.
@@ -177,7 +177,8 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
 
     @Test func technicalTokenDoesNotSwallowAFragment() {
         // «ки» typed in Russian text must not become the Ruby extension "rb".
-        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        var simulator = TypingSimulator(
+            engine: makeEngine(), active: .russian, options: CorrectionOptions(spelling: false))
         simulator.type("привет мир ки ")
         #expect(simulator.document == "привет мир ки ")
     }
@@ -238,7 +239,9 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
 
     @Test func shortRussianWordsInRussianTextStay() {
         // «ки» reads as the Ruby extension "rb"; inside Russian text it is not Ruby.
-        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        // Spelling is off: the handful of words in this test vocabulary would make «ки» a typo of «и».
+        var simulator = TypingSimulator(
+            engine: makeEngine(), active: .russian, options: CorrectionOptions(spelling: false))
         simulator.type("привет мир как дела ки ")
         #expect(simulator.document == "привет мир как дела ки ")
         #expect(simulator.current.language == .russian)

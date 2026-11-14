@@ -13,8 +13,8 @@ let package = Package(
         .target(
             name: "LangSwitchCore",
             resources: [
-                .copy("Resources/Frequency"), .copy("Resources/Terms"), .copy("Resources/Rules"),
-                .copy("Resources/Trainer"),
+                .copy("Resources/Frequency"), .copy("Resources/Context"), .copy("Resources/Terms"),
+                .copy("Resources/Rules"), .copy("Resources/Trainer"),
             ]
         ),
         // Vendored Hunspell 1.7.6 (MPL 1.1 option), see ThirdParty/Hunspell/README.md.
@@ -35,6 +35,11 @@ let package = Package(
         ),
         .executableTarget(
             name: "LangSwitch",
+            dependencies: ["LangSwitchCore", "LangSwitchLexicon"]
+        ),
+        // Builds the generated language data from open corpora; see docs/DATA.md. Not part of the app.
+        .executableTarget(
+            name: "LangSwitchData",
             dependencies: ["LangSwitchCore", "LangSwitchLexicon"]
         ),
         .testTarget(name: "LangSwitchCoreTests", dependencies: ["LangSwitchCore"]),

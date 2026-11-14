@@ -25,7 +25,7 @@ except `Figma`, which only gets its capital letter.
 | | |
 | --- | --- |
 | **Layout** | Decides the language from dictionaries, word frequencies and letter statistics. Leaves `git`, `GitLab`, `gmail`, links, e-mail addresses, `camelCase` and code untouched. |
-| **Spelling** | An error model instead of a word list: slips of the hands (swapped, missing, doubled letters) and the spelling rules of each language — Russian soft sign, vowels after hushing sounds, paired consonants, silent letters, prefixes, joined/separate/hyphenated words; English double consonants, unstressed vowels, silent e, apostrophes. `recieve` → `receive`, `definately` → `definitely`, `dont` → `don't`. |
+| **Spelling** | An error model instead of a word list: slips of the hands (swapped, missing, doubled letters) and the spelling rules of each language — Russian soft sign, vowels after hushing sounds, paired consonants, silent letters, prefixes, joined/separate/hyphenated words; English double consonants, unstressed vowels, silent e, apostrophes. `recieve` → `receive`, `definately` → `definitely`, `dont` → `don't`. The previous word is taken into account; the frequency lists hold 125,000 Russian and 43,000 English forms. |
 | **Punctuation** | Commas before Russian conjunctions, a space after a comma, sentence capitals, proper names, `HEllo` → `Hello`. |
 | **Autocomplete** | Grey ghost text after the caret, accepted with <kbd>Tab</kbd>. Learns your own vocabulary. |
 | **Alternatives** | Double-click a word in any field for spellings, word forms and synonyms. |
@@ -79,5 +79,6 @@ A boundary decision takes about 0.8 ms; at rest the application uses no timers.
 
 ## License
 
-[MIT](LICENSE). Hunspell and the dictionaries keep their own terms —
-see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The code is [MIT](LICENSE). Hunspell, the dictionaries and the language data keep their own terms
+(the frequency list is CC BY-SA 4.0, the context model CC BY 2.0 FR) —
+see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [docs/DATA.md](docs/DATA.md).

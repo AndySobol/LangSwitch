@@ -2,16 +2,18 @@ import Foundation
 
 /// Finds the intended word behind a typo.
 ///
-/// The model has three parts, and a correction is applied only when they agree:
+/// The model has four parts, and a correction is applied only when they agree:
 ///
 /// 1. **How people mistype.** Slips of the hands (swapped neighbours, a dropped or doubled letter, a hit
 ///    on the next key), word boundaries (a missing space, hyphen or apostrophe) and the places where
 ///    the spelling rules of the language invite a mistake (unstressed vowels, paired consonants, the
 ///    soft sign, vowels after hushing sounds, silent letters, prefixes in з/с). Each has a cost.
 /// 2. **What is a word.** A candidate must be in the vocabulary; everyday words are preferred.
-/// 3. **How far each kind of slip can be trusted.** Measured on corpora the rules were not written
-///    against (`Tests/LangSwitchLexiconTests/Fixtures`): a kind of slip is applied automatically
-///    exactly as far as it proved right there; the rest is only offered in the list of alternatives.
+/// 3. **What stands around.** A candidate seen after the previous word in real text is preferred.
+/// 4. **How far the explanation can be trusted.** `CorrectionPolicy` weighs the best candidate: its
+///    kind, how common it is, the context, how far the next explanation is. Its weights are fitted to
+///    corpora the rules were not written against (`Tests/LangSwitchLexiconTests/Fixtures`); what does
+///    not pass is only offered in the list of alternatives.
 ///
 /// There is no table of "known misspellings": a typo is fixed because the model explains it, so the same
 /// rules cover words nobody listed.
@@ -82,11 +84,24 @@ package struct SpellingCorrector {
     package struct Candidate: Sendable, Equatable {
         package let word: String
         /// Lower is better: the cost of the slip minus what frequency and context say for the word.
-        package let score: Float
+        package var score: Float
         package let edit: Edit
+        /// How often the word follows the previous one in everyday text; 0 when the pair was never seen
+        /// or there is nothing to compare with.
+        package var followsPrevious = 0
+        /// For a replacement of two words: how often they stand next to each other.
+        package var innerPair = 0
+
+        init(word: String, score: Float, edit: Edit) {
+            self.word = word
+            self.score = score
+            self.edit = edit
+        }
     }
 
     private let vocabulary: Vocabulary
+    private let models: [Language: NGramModel]
+    private let policy: CorrectionPolicy?
     private let adjacency: [Language: [Character: [Character]]]
 
     /// What a language's spelling rules say about letters that get confused.
@@ -190,8 +205,15 @@ package struct SpellingCorrector {
         return [.russian: russian, .english: english]
     }()
 
-    package init(vocabulary: Vocabulary) {
+    /// - Parameters:
+    ///   - models: letter models, which tell how word-like a typed string is.
+    ///   - policy: decides what is applied automatically; without it replacements are only offered.
+    package init(
+        vocabulary: Vocabulary, models: [Language: NGramModel] = [:], policy: CorrectionPolicy? = nil
+    ) {
         self.vocabulary = vocabulary
+        self.models = models
+        self.policy = policy
         self.adjacency = [
             .english: Self.adjacency(for: .abc),
             .russian: Self.adjacency(for: .russian),
@@ -227,11 +249,15 @@ package struct SpellingCorrector {
         return result
     }
 
+    /// What being a common word is worth to a candidate.
     private func bonus(_ rank: Int?) -> Float {
         guard let rank else { return 0 }
         if rank < 300 { return 0.5 }
         if rank < 1500 { return 0.35 }
-        return 0.2
+        if rank < 6000 { return 0.2 }
+        if rank < 20000 { return 0.14 }
+        if rank < 60000 { return 0.08 }
+        return 0.03
     }
 
     private enum Scope {
@@ -374,8 +400,37 @@ package struct SpellingCorrector {
 
     /// Words the model can explain as the intention behind `word`, best first.
     ///
-    /// - Parameter deep: also look two slips away (slower; for the list of alternatives).
-    package func candidates(for word: String, language: Language, deep: Bool = false) -> [Candidate] {
+    /// - Parameters:
+    ///   - previous: the word before this one in the same clause, when there is one.
+    ///   - deep: also look two slips away (slower; for the list of alternatives).
+    package func candidates(
+        for word: String, language: Language, after previous: String? = nil, deep: Bool = false
+    ) -> [Candidate] {
+        var found = explanations(of: word, language: language, deep: deep)
+        for index in found.indices {
+            let parts = found[index].word.lowercased().components(separatedBy: " ")
+            if let previous, let first = parts.first {
+                found[index].followsPrevious = vocabulary.pairCount(previous, first, language: language) ?? 0
+            }
+            if parts.count == 2, let pair = vocabulary.pairCount(parts[0], parts[1], language: language) {
+                found[index].innerPair = pair
+                // Two words that are never seen side by side are a poor explanation: «и ать», «о любимый».
+                found[index].score += pair > 0 ? -Self.contextBonus(pair) / 2 : 0.5
+            }
+            // What precedes a split says little: its first half is usually a function word, and those
+            // follow anything.
+            if parts.count == 1 { found[index].score -= Self.contextBonus(found[index].followsPrevious) }
+        }
+        return found.sorted { $0.score == $1.score ? $0.word < $1.word : $0.score < $1.score }
+    }
+
+    /// What a pair seen in real text is worth: it grows slowly with the number of sightings.
+    package static func contextBonus(_ pairs: Int) -> Float {
+        pairs > 0 ? min(0.25 + 0.1 * log10(Float(pairs)), 0.55) : 0
+    }
+
+    /// Every word the model can reach from `word`, without looking at the sentence.
+    private func explanations(of word: String, language: Language, deep: Bool) -> [Candidate] {
         let lower = Array(word.lowercased())
         guard lower.count >= 2, lower.count <= 32,
             lower.allSatisfy({ language.isLetter($0) || $0 == "-" || $0 == "'" })
@@ -403,7 +458,11 @@ package struct SpellingCorrector {
             if edit.family == .mechanical, edit != .swappedLetters {
                 if text.first != typed.first { score += 0.3 }
                 // «кконцу» is far more often «к концу» than a doubled first letter.
-                if edit == .doubledLetter, typed.dropFirst() == text { score += 0.5 }
+                if edit == .doubledLetter, typed.dropFirst() == text, let first = typed.first,
+                    Self.orthography[language]?.proclitics.contains(String(first)) == true
+                {
+                    score += 0.5
+                }
             }
             offer(spelling, score, edit)
         }
@@ -524,110 +583,81 @@ package struct SpellingCorrector {
         guard leftKnown != rightKnown else { return }
         let broken = leftKnown ? right : left
         guard broken.count >= 4 else { return }
-        for candidate in candidates(for: broken, language: language) where !candidate.word.contains(" ") {
+        for candidate in explanations(of: broken, language: language, deep: false)
+        where !candidate.word.contains(" ") {
             let repaired = leftKnown ? left + "-" + candidate.word : candidate.word + "-" + right
             offer(repaired, candidate.score, candidate.edit)
         }
     }
 
-    /// A replacement that is safe to apply without asking, or nil.
-    ///
-    /// The policy is taken from measurements on the corpora in `Tests/…/Fixtures` (see `CorpusAnalysis`):
-    /// each kind of slip is trusted exactly as far as it proved right there.
-    ///
-    /// - Parameter capitalIsOrdinary: the word opens a sentence, so its capital letter does not suggest
-    ///   a name.
-    package func autoCorrection(for word: String, language: Language, capitalIsOrdinary: Bool = false)
-        -> String?
-    {
-        guard word.count >= 2, word.count <= 24 else { return nil }
-        // Mixed case such as "iPhone" or "SwiftUI" is deliberate.
-        guard word.isAllLowercase || word.isCapitalized || word.isAllUppercase else { return nil }
+    /// The confidence a replacement needs to be applied automatically; nil without a policy.
+    package var threshold: Float? { policy?.threshold }
 
-        let found = candidates(for: word, language: language)
+    /// The best explanation of an unknown word and how much the policy believes in it.
+    package func assessment(
+        of word: String, language: Language, after previous: String? = nil
+    ) -> (candidate: Candidate, confidence: Float, rank: Int?)? {
+        guard let policy else { return nil }
+        let found = candidates(for: word, language: language, after: previous)
         guard let best = found.first else { return nil }
         let lower = word.lowercased()
         let target = best.word.lowercased()
-        let edit = best.edit
 
-        let parts = target.components(separatedBy: " ")
-        let ranks = parts.map { vocabulary.rank(of: $0, language: language) }
-        // An everyday form: every word of the replacement is in the frequency list.
-        let everyday: Int? = ranks.contains(nil) ? nil : ranks.compactMap { $0 }.max()
-        // At least a form of an everyday word: «исправляем» through «исправлять».
-        let common = parts.allSatisfy { vocabulary.commonness(of: $0, language: language) != nil }
-        // A single explanation: nothing else comes close.
-        let unique = found.dropFirst().first.map { $0.score - best.score >= 0.5 } ?? true
-
-        // Short words say too little about themselves, and most unknown ones are abbreviations: «го»
-        // must not become «его», nor «омг» «мог». Telling these apart takes the sentence, which this
-        // model does not read.
-        switch word.count {
-        case 2:
-            guard edit == .missingApostrophe, let everyday, everyday < 300 else { return nil }
-        case 3:
-            guard [.swappedLetters, .doubledLetter, .missingApostrophe].contains(edit), let everyday,
-                everyday < 300
-            else { return nil }
-        default:
-            break
+        func rank(_ candidate: Candidate, through lemmas: Bool) -> Int? {
+            let ranks = candidate.word.components(separatedBy: " ").map {
+                lemmas
+                    ? vocabulary.commonness(of: $0, language: language)
+                    : vocabulary.rank(of: $0, language: language)
+            }
+            return ranks.contains(nil) ? nil : ranks.compactMap { $0 }.max()
         }
+        let parts = target.components(separatedBy: " ")
+        let rival = found.dropFirst().first
+        var evidence = CorrectionPolicy.Evidence()
+        evidence.edit = String(describing: best.edit)
+        evidence.length = word.count
+        evidence.rank = rank(best, through: false)
+        evidence.lemmaRank = rank(best, through: true)
+        evidence.seenAfterPrevious = best.followsPrevious
+        evidence.margin = rival.map { $0.score - best.score }
+        evidence.rivalIsRanked = rival.map { rank($0, through: false) != nil } ?? false
+        evidence.firstLetterChanged = target.first != lower.first
+        evidence.plausibility = models[language]?.plausibility(of: lower) ?? 0
+        evidence.candidateCount = found.count
+        evidence.seenTogether = best.innerPair
+        evidence.gluedFunctionWord =
+            parts.count == 2 && parts[1].count >= 3
+            && Self.orthography[language]?.proclitics.contains(parts[0]) == true
+        evidence.score = best.score
+        evidence.isEnglish = language == .english
+        guard let confidence = policy.confidence(evidence) else { return nil }
+        return (best, confidence, evidence.rank)
+    }
+
+    /// A replacement that is safe to apply without asking, or nil.
+    ///
+    /// - Parameters:
+    ///   - capitalIsOrdinary: the word opens a sentence, so its capital letter does not suggest a name.
+    ///   - previous: the word before this one in the same clause, when there is one.
+    package func autoCorrection(
+        for word: String, language: Language, capitalIsOrdinary: Bool = false, after previous: String? = nil
+    ) -> String? {
+        guard let policy, word.count >= 2, word.count <= 24 else { return nil }
+        // Mixed case such as "iPhone" or "SwiftUI" is deliberate.
+        guard word.isAllLowercase || word.isCapitalized || word.isAllUppercase else { return nil }
+        // A short capitalised word may be a name the dictionaries lack («Fadil» is not "Fail"), even at
+        // the start of a sentence: it has to be a surer case.
+        let mayBeName = !word.isAllLowercase && word.count <= 6
+        let required = mayBeName ? min(policy.threshold + 0.1, 0.95) : policy.threshold
+        guard let (best, confidence, rank) = assessment(of: word, language: language, after: previous),
+            confidence >= required
+        else { return nil }
         // A typo inside one part of a compound is only offered: the compound itself is nobody's
         // everyday word, so there is nothing to check the repair against.
-        if lower.contains("-"), edit != .strayHyphen { return nil }
-        // People get the first letter right; a slip of the hand there is not assumed.
-        if edit.family == .mechanical, edit != .swappedLetters {
-            if target.first != lower.first || lower.dropFirst() == target { return nil }
-        }
-
-        let trusted: Bool
-        switch edit {
-        case .droppedDoubleLetter, .ruleSpelling, .missingHyphen, .missingApostrophe:
-            // The rule leaves one spelling; the dictionary has already confirmed that it exists.
-            trusted = true
-        case .strayHyphen:
-            // Apart by rule («как будто»), or joined into an everyday word («будто», «полгода»).
-            trusted = parts.count > 1 || everyday != nil
-        case .missingSpace:
-            // A function word glued to the next one («вточности»), or two of the commonest words
-            // («пока что»). Anything else splits unknown words at random: «дизайнили» → «дизайн или».
-            let proclitics = Self.orthography[language]?.proclitics ?? []
-            let glued = parts.count == 2 && proclitics.contains(parts[0]) && parts[1].count >= 3
-            let commonest = parts.count == 2 && parts[0].count >= 3 && parts[1].count >= 2
-            // Another everyday word within one ordinary slip («опять» for «апять») makes the split a guess.
-            let rival = found.dropFirst().contains { other in
-                other.edit != .strayLetter && other.edit != .neighbouringKey && !other.word.contains(" ")
-                    && vocabulary.rank(of: other.word.lowercased(), language: language) != nil
-            }
-            trusted = !rival && (everyday.map { glued || (commonest && $0 < 300) } ?? false)
-        case .confusedVowel, .confusedConsonant, .swappedLetters, .droppedLetter, .doubledLetter, .softSign,
-            .silentLetter, .misplacedDouble:
-            if everyday != nil {
-                trusted = true
-            } else {
-                // A long word with a single explanation, and either an everyday word behind it or a
-                // slip that hardly ever turns one real word into another.
-                let rare = [.softSign, .silentLetter, .doubledLetter, .misplacedDouble].contains(edit)
-                trusted = word.count >= 7 && unique && (common || rare)
-            }
-        case .twoSlips:
-            trusted = word.count >= 8 && unique && (common || word.count >= 10)
-        case .strayLetter, .neighbouringKey:
-            // An extra or a neighbouring letter turns unknown words into known ones too easily:
-            // «клод» → «код», «фигме» → «фирме». Offered in the list of alternatives only.
-            trusted = false
-        }
-        guard trusted else { return nil }
-
-        // A capital inside a sentence usually marks a name: only an obvious slip towards a common word.
+        if word.contains("-"), best.edit != .strayHyphen { return nil }
+        // A capital inside a sentence usually marks a name: only an obvious slip towards a listed word.
         if !word.isAllLowercase && !(capitalIsOrdinary && word.isCapitalized) {
-            guard edit == .swappedLetters || edit == .doubledLetter, everyday != nil else { return nil }
-        }
-
-        // Two readings of nearly the same weight («пошол»: «пошел» or «пошло») are a question for the user.
-        if let runnerUp = found.dropFirst().first {
-            let required: Float = edit == .missingSpace ? 0.25 : 0.15
-            if runnerUp.score - best.score < required { return nil }
+            guard best.edit == .swappedLetters || best.edit == .doubledLetter, rank != nil else { return nil }
         }
         return matchCase(of: word, to: best.word)
     }

@@ -89,17 +89,44 @@ enum SortedPrefixSearch {
 }
 
 package struct FrequencyList: Sendable {
+    /// Every word, most frequent first: the core list, then the extension.
     package let words: [String]
+    /// The curated head of the list: the commonest everyday forms, which the letter model is trained
+    /// on and which the "one of the commonest words" rules refer to.
+    package let coreCount: Int
     private let ranks: [String: Int]
     private let sorted: [String]
 
-    package init(words: [String] = []) {
-        self.words = words
+    /// - Parameter extended: words beyond the core, ordered by how often they occur in a large corpus.
+    package init(words: [String] = [], extended: [String] = []) {
+        var all = words
         var ranks: [String: Int] = [:]
-        ranks.reserveCapacity(words.count)
+        ranks.reserveCapacity(words.count + extended.count)
         for (index, word) in words.enumerated() where ranks[word] == nil { ranks[word] = index }
+        for word in extended where ranks[word] == nil {
+            ranks[word] = all.count
+            all.append(word)
+        }
+        self.words = all
+        self.coreCount = words.count
         self.ranks = ranks
-        self.sorted = words.sorted()
+        self.sorted = all.sorted()
+    }
+
+    package var core: ArraySlice<String> { words.prefix(coreCount) }
+
+    /// Identifies the exact list: data built against it (the context model) is tied to this value.
+    package var signature: UInt64 {
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for word in words {
+            for byte in word.utf8 {
+                hash ^= UInt64(byte)
+                hash = hash &* 0x0000_0100_0000_01B3
+            }
+            hash ^= 0x0A
+            hash = hash &* 0x0000_0100_0000_01B3
+        }
+        return hash
     }
 
     /// True when some listed word starts with `prefix` (lower case).
@@ -152,6 +179,7 @@ package final class Vocabulary {
     private let dictionary: any SpellingDictionary
     package let terms: TermLexicon
     package let frequency: [Language: FrequencyList]
+    package let context: [Language: ContextModel]
     package var personal: PersonalVocabulary {
         didSet { if personal != oldValue { cache.removeAll(keepingCapacity: true) } }
     }
@@ -165,8 +193,10 @@ package final class Vocabulary {
 
     package init(
         dictionary: any SpellingDictionary, terms: TermLexicon = TermLexicon(),
-        frequency: [Language: FrequencyList] = [:], personal: PersonalVocabulary = PersonalVocabulary()
+        frequency: [Language: FrequencyList] = [:], context: [Language: ContextModel] = [:],
+        personal: PersonalVocabulary = PersonalVocabulary()
     ) {
+        self.context = context
         self.dictionary = dictionary
         self.terms = terms
         self.frequency = frequency
@@ -175,6 +205,37 @@ package final class Vocabulary {
 
     package func rank(of word: String, language: Language) -> Int? {
         frequency[language]?.rank(of: word)
+    }
+
+    /// How many times `word` follows `previous` in everyday text. Nil when the pair cannot be judged:
+    /// there is no model, or one of the words is outside its vocabulary.
+    package func pairCount(_ previous: String, _ word: String, language: Language) -> Int? {
+        guard let model = context[language], let list = frequency[language],
+            let first = list.rank(of: Self.folded(previous)), let second = list.rank(of: Self.folded(word))
+        else { return nil }
+        return model.count(first, second)
+    }
+
+    /// How many pairs in the corpus begin with `previous`; 0 when it is unknown to the model.
+    package func pairTotal(after previous: String, language: Language) -> Int {
+        guard let model = context[language], let first = frequency[language]?.rank(of: Self.folded(previous))
+        else { return 0 }
+        return model.total(after: first)
+    }
+
+    /// The words that most often follow `previous`, most frequent first.
+    package func followers(of previous: String, language: Language, limit: Int) -> [(
+        word: String, count: Int
+    )] {
+        guard let model = context[language], let list = frequency[language],
+            let first = list.rank(of: Self.folded(previous))
+        else { return [] }
+        return model.followers(of: first, limit: limit).map { (list.words[$0.word], $0.count) }
+    }
+
+    /// The corpus is counted without «ё», as most people type.
+    private static func folded(_ word: String) -> String {
+        word.lowercased().replacingOccurrences(of: "ё", with: "е")
     }
 
     /// Dictionary forms of a word; plugged in by the dictionary provider.

@@ -388,14 +388,29 @@ package struct TypingSession {
         if result.converted, let alternative = layouts.alternative { layoutAfter = alternative.id }
 
         // The space slipped by one letter between this word and the previous one: repair both at once.
-        // One slipped space is preferred to a second, missing one («ка кдела» is «как дела», not
-        // «ка к дела»); any other repair of the word itself stands.
+        // One slipped space is preferred to a second, missing one («ка кдела» is not «ка к дела»), and
+        // to any repair of this word when the previous one is not a word either («н ето» is «не то»,
+        // not «н это»). Otherwise a repair of the word itself stands.
         let splitOnly = result.kinds == .spelling && result.text.contains(" ") && !text.contains(" ")
-        if uniform, !wasUnanchored, adjacent, options.spelling, result.text == text || splitOnly,
+        let previousIsStray =
+            result.kinds == .spelling
+            && history.last.map { chunk in
+                Language.dominant(in: chunk.finalText).map {
+                    !engine.vocabulary.isKnown(chunk.finalText, language: $0)
+                }
+                    ?? false
+            } == true
+        if uniform, !wasUnanchored, adjacent, options.spelling,
+            result.text == text || splitOnly || previousIsStray,
             !result.commaBefore,
             let previous = history.last, previous.boundary == .space, !previous.corrected,
             previous.leading.isEmpty,
             previous.layoutAfter == layoutID, let language = result.language,
+            // «I sa Tom» is "I saw Tom" sooner than "Is a Tom": a reading of the word that is seen after
+            // the previous one leaves the space where it is.
+            previousIsStray
+                || (engine.speller.assessment(of: text, language: language, after: previous.finalText)?
+                    .candidate.followsPrevious ?? 0) == 0,
             let repair = engine.spaceSlip(previous: previous.finalText, current: text, language: language)
         {
             history.removeLast()

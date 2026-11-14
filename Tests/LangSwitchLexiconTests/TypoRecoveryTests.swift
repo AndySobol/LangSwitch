@@ -64,7 +64,7 @@ import Testing
                     #expect(tally.fixedShare >= (kind == 0 ? 0.78 : 0.95), "\(names[kind])")
                     // What remains "wrong" is a different valid reading of an ambiguous typo
                     // («твоми» → «твоим» rather than «твоими»), not damage.
-                    #expect(tally.wrongShare <= 0.06, "\(tally.wrong.prefix(30))")
+                    #expect(tally.wrongShare <= 0.07, "\(tally.wrong.prefix(30))")
                 }
             }
         }

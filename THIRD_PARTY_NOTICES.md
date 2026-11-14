@@ -28,7 +28,29 @@ third-party components, each under its own terms.
 - Copyright 2000–2026 Kevin Atkinson and contributors. Permissive license; the full text is in
   `README_en_US.txt` next to the dictionary. Distributed unmodified.
 
+## Word frequencies (FrequencyWords, OpenSubtitles 2018)
+
+- Location: `Sources/LangSwitchCore/Resources/Frequency/ru-extended.txt`, `en-extended.txt` — word
+  lists derived from the counts (filtered against the spelling dictionaries, ordered by frequency).
+- Source: <https://github.com/hermitdave/FrequencyWords>, `content/2018/ru/ru_full.txt` and
+  `content/2018/en/en_full.txt`, by Hermit Dave, based on the OpenSubtitles 2018 corpus.
+- License: **Creative Commons Attribution-ShareAlike 4.0** (<https://creativecommons.org/licenses/by-sa/4.0/>).
+  The two derived lists are distributed under the same license. They are data files read by the
+  application; the MIT License of the code does not extend to them.
+
+## Sentences (Tatoeba)
+
+- Location: `Sources/LangSwitchCore/Resources/Context/ru.pairs`, `en.pairs` — counts of neighbouring
+  word pairs computed from the sentences; `Tests/LangSwitchLexiconTests/Fixtures/sentences-*.txt` and
+  `unlisted-*.txt` — sentences and words taken from them unchanged.
+- Source: <https://tatoeba.org>, per-language sentence exports of 14 November 2026.
+- License: **Creative Commons Attribution 2.0 France** (<https://creativecommons.org/licenses/by/2.0/fr/>).
+  Sentences are the work of Tatoeba contributors.
+
+How these files are produced is described in `docs/DATA.md`.
+
 ## Authored data
 
-The frequency lists, term list, slang list, misspelling tables, thesaurus and trainer texts in
-`Sources/LangSwitchCore/Resources/` were written for this project and are covered by the MIT License.
+The core frequency lists (`ru.txt`, `en.txt`), term list, thesaurus and trainer texts in
+`Sources/LangSwitchCore/Resources/`, and the typo and colloquial corpora in
+`Tests/LangSwitchLexiconTests/Fixtures/`, were written for this project and are covered by the MIT License.

@@ -74,11 +74,12 @@ package struct CorrectionEngine {
     private let abbreviations: Set<String>
 
     package init(
-        vocabulary: Vocabulary, models: [Language: NGramModel], abbreviations: Set<String> = []
+        vocabulary: Vocabulary, models: [Language: NGramModel], abbreviations: Set<String> = [],
+        policy: CorrectionPolicy? = nil
     ) {
         self.vocabulary = vocabulary
         self.decider = LayoutDecider(vocabulary: vocabulary, models: models)
-        self.speller = SpellingCorrector(vocabulary: vocabulary)
+        self.speller = SpellingCorrector(vocabulary: vocabulary, models: models, policy: policy)
         self.abbreviations = abbreviations
     }
 
@@ -120,6 +121,13 @@ package struct CorrectionEngine {
                 let firstRank = vocabulary.rank(of: String(first), language: language),
                 let secondRank = vocabulary.rank(of: String(second), language: language)
             else { return }
+            // With a context model, the two words must have been seen side by side; without one, both
+            // must be among the commonest.
+            if let pair = vocabulary.pairCount(String(first), String(second), language: language) {
+                guard pair > 0 else { return }
+            } else {
+                guard max(firstRank, secondRank) < 6000 else { return }
+            }
             repairs.append((String(first), String(second), max(firstRank, secondRank)))
         }
         // The space came one letter too early …
@@ -143,7 +151,9 @@ package struct CorrectionEngine {
 
     /// True when a chunk ends a sentence, so the next word starts with a capital letter.
     package func endsSentence(_ chunk: String) -> Bool {
-        guard let last = chunk.last, ".!?…".contains(last) else { return false }
+        guard let last = chunk.last, ".!?".contains(last) else { return false }
+        // An ellipsis trails off; the sentence may well go on.
+        if chunk.hasSuffix("..") { return false }
         let lower = chunk.lowercased()
         if abbreviations.contains(lower) { return false }
         // Initials and single letters: "А." or "e."
@@ -154,6 +164,29 @@ package struct CorrectionEngine {
         return true
     }
 
+    /// A chunk that the layout decision wants to convert, but which is better explained as a word of
+    /// the typed language with a slip in it: «руук» is «руку», not "heer".
+    private func isSlipInTypedLanguage(_ input: ChunkInput, alternative: String) -> Bool {
+        let language = input.typedLanguage
+        let word = input.typed.trimmingCharacters(in: CharacterSet(charactersIn: ".,!?:;()\"'«»"))
+        guard word.count >= 3, word.allSatisfy({ language.isLetter($0) }), let threshold = speller.threshold,
+            let assessment = speller.assessment(of: word, language: language, after: input.previousWords.last)
+        else { return false }
+        // Against an everyday word of the other language the slip has to be as certain as any
+        // correction; against a rare or unknown one, merely likely.
+        let other = decider.reading(of: alternative, language: language.other)
+        let otherIsEveryday = other.allKnown && other.worstRank != nil
+        return assessment.confidence >= (otherIsEveryday ? threshold : 0.5)
+    }
+
+    /// The word right before a token in the same clause: inside the chunk, or the last one typed.
+    private func previousWord(before index: Int, in tokens: [TextToken], input: ChunkInput) -> String? {
+        if index >= 2, tokens[index - 2].isWord, tokens[index - 1].text.allSatisfy({ $0.isWhitespace }) {
+            return tokens[index - 2].text.lowercased()
+        }
+        return index == 0 ? input.previousWords.last : nil
+    }
+
     package func process(_ input: ChunkInput, options: CorrectionOptions) -> ChunkResult {
         var text = input.typed
         var language = input.typedLanguage
@@ -162,7 +195,8 @@ package struct CorrectionEngine {
         if options.layout, let alternative = input.alternative,
             decider.decide(
                 typed: input.typed, typedLanguage: input.typedLanguage, alternative: alternative,
-                context: input.context) == .convert
+                context: input.context) == .convert,
+            !isSlipInTypedLanguage(input, alternative: alternative)
         {
             text = alternative
             language = input.typedLanguage.other
@@ -215,7 +249,8 @@ package struct CorrectionEngine {
                 if options.spelling,
                     let fixed = speller.autoCorrection(
                         for: word, language: language,
-                        capitalIsOrdinary: isFirst && (input.sentenceStart || input.mayOpenSentence))
+                        capitalIsOrdinary: isFirst && (input.sentenceStart || input.mayOpenSentence),
+                        after: previousWord(before: index, in: tokens, input: input))
                 {
                     tokens[index].text = fixed
                     kinds.insert(.spelling)

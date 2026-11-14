@@ -94,7 +94,9 @@ package struct LayoutDecider {
             }
             if knowledge.isTerm { reading.hasTerm = true }
             if knowledge.isPersonal { reading.hasPersonal = true }
-            if let rank = knowledge.rank {
+            // "Frequent" here means the curated core of the list, which these rules were tuned on; the
+            // extension ranks nearly every dictionary word and would tell nothing apart.
+            if let rank = knowledge.rank, rank < vocabulary.frequency[language]?.coreCount ?? 0 {
                 reading.worstRank = max(reading.worstRank ?? 0, rank)
             } else {
                 reading.everyWordRanked = false
@@ -180,8 +182,9 @@ package struct LayoutDecider {
             // language, an unknown short word is far more likely an abbreviation or a slip («ща», «вк»,
             // «ки») than a word of the other language typed blind.
             if other.letters <= 3, context.confirms(typedLanguage) { return .keep }
-            // A technical token ("rb", "js") is weaker evidence still.
-            if other.letters == 2, other.worstRank == nil, context.previousLanguage == typedLanguage {
+            // A short token that is not an everyday word ("rb", "vt", «урн») proves nothing unless
+            // the other language is already being typed.
+            if other.letters <= 3, other.worstRank == nil, context.previousLanguage != alternativeLanguage {
                 return .keep
             }
             // The typed text may still be an unlisted but real word (a surname, new slang) whose keys
