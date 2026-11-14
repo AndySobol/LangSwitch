@@ -140,7 +140,7 @@ struct MenuPanel: View {
             }
 
             Divider()
-            HStack {
+            HStack(spacing: 6) {
                 Button {
                     model.selection = .trainer
                     model.openMainWindow?()
@@ -161,7 +161,9 @@ struct MenuPanel: View {
             .controlSize(.small)
         }
         .padding(14)
-        .frame(width: 300)
+        .frame(width: 320)
+        // The popover takes keyboard focus when it opens; a focus ring on the first button is noise.
+        .focusEffectDisabled()
         .buttonStyle(.secondary)
         .foregroundStyle(Theme.ink)
         .background(Color.black.opacity(0.35))

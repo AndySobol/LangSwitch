@@ -78,6 +78,8 @@ struct PrimaryButtonStyle: ButtonStyle {
         let large = controlSize == .large
         configuration.label
             .font(.system(size: large ? 14 : 13, weight: .semibold))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .foregroundStyle(Theme.onInk)
             .padding(.horizontal, large ? 22 : 15)
             .padding(.vertical, large ? 9 : 6)
@@ -99,6 +101,8 @@ struct SecondaryButtonStyle: ButtonStyle {
         let small = controlSize == .small
         configuration.label
             .font(.system(size: large ? 14 : small ? 12 : 13, weight: .medium))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .foregroundStyle(configuration.role == .destructive ? Theme.danger : Theme.ink)
             .padding(.horizontal, large ? 20 : small ? 11 : 14)
             .padding(.vertical, large ? 9 : small ? 4 : 6)

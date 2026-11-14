@@ -71,6 +71,10 @@ enum SnapshotRenderer {
             trainer.stop()
         }
 
+        await render(
+            MenuPanel(close: {}).environment(model), size: CGSize(width: 320, height: 420),
+            to: folder.appendingPathComponent("menu.png"), dark: true)
+
         // Floating pieces on a neutral background.
         let record = CorrectionRecord(
             original: "ghbdtn", corrected: "привет", kinds: .layout, application: "Notes", date: Date(),

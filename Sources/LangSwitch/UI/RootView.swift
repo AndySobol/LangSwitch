@@ -80,6 +80,7 @@ struct RootView: View {
         .tint(Theme.ink)
         .foregroundStyle(Theme.ink)
         .preferredColorScheme(.dark)
+        .focusEffectDisabled()
         // Re-render every string when the interface language changes.
         .id(model.settings.interfaceLanguage)
     }
