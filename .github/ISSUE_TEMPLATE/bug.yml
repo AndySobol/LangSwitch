@@ -33,7 +33,7 @@ body:
     id: versions
     attributes:
       label: Версии LangSwitch и macOS
-      placeholder: "LangSwitch 1.0.0, macOS 15.7"
+      placeholder: "LangSwitch 1.1.0, macOS 15.7"
     validations:
       required: true
   - type: textarea

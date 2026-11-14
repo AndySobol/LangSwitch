@@ -32,9 +32,10 @@ jobs:
       - name: Release notes
         run: |
           version="${{ steps.version.outputs.value }}"
-          # The section of CHANGELOG.md for this version, without its heading.
+          # The section of CHANGELOG.md for this version, without its heading or the link list.
           awk -v v="$version" '
             /^## \[/ { printing = index($0, "[" v "]") > 0; next }
+            /^\[[0-9.]+\]: / { next }
             printing { print }
           ' CHANGELOG.md > notes.md
           {
@@ -46,7 +47,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          version="${{ steps.version.outputs.value }}"
+          title="LangSwitch $version"
           flags=()
           case "$GITHUB_REF_NAME" in *-*) flags+=(--prerelease) ;; esac
+          # A version whose CHANGELOG heading says «бета» is published as a pre-release.
+          if grep -q "^## \[$version\].*бета" CHANGELOG.md; then
+            flags+=(--prerelease)
+            title="$title beta"
+          fi
           gh release create "$GITHUB_REF_NAME" dist/release/* \
-            --title "LangSwitch ${{ steps.version.outputs.value }}" --notes-file notes.md "${flags[@]}"
+            --title "$title" --notes-file notes.md "${flags[@]}"
