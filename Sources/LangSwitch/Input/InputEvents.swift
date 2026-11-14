@@ -74,6 +74,15 @@ struct EngineDiagnostics: Sendable, Equatable {
     var layoutChangesByUser = 0
     var layoutChangesByApp = 0
     var removedLearnedWords = 0
+    /// Times a key showed that the system was on the other layout than the engine believed.
+    var layoutResyncs = 0
+    /// The last decisions, described without any text: lengths, flags and outcomes only.
+    var recent: [String] = []
+
+    mutating func note(_ line: String) {
+        recent.append(line)
+        if recent.count > 14 { recent.removeFirst(recent.count - 14) }
+    }
     /// The last chunk as the engine saw it. Filled only when LANGSWITCH_TRACE=1 is set by a developer.
     var trace: String?
 
@@ -89,6 +98,7 @@ struct EngineDiagnostics: Sendable, Equatable {
             "engine.layoutChangesByUser: \(layoutChangesByUser)",
             "engine.layoutChangesByApp: \(layoutChangesByApp)",
             "engine.removedLearnedWords: \(removedLearnedWords)",
-        ] + (trace.map { ["engine.trace: \($0)"] } ?? [])
+            "engine.layoutResyncs: \(layoutResyncs)",
+        ] + recent.map { "engine.recent: \($0)" } + (trace.map { ["engine.trace: \($0)"] } ?? [])
     }
 }

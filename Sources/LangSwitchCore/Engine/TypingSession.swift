@@ -155,18 +155,48 @@ package struct TypingSession {
     }
 
     /// A text key was pressed. `produced` is the character macOS reports for it, when available.
-    package mutating func character(_ stroke: KeyStroke, produced: Character? = nil) {
+    ///
+    /// The produced character is the ground truth about the active layout. If the key typed what only
+    /// the *other* layout explains, the session was told about a layout switch too late or not at all;
+    /// it follows the evidence and swaps its layouts. Returns true when that happened.
+    @discardableResult
+    package mutating func character(_ stroke: KeyStroke, produced: Character? = nil) -> Bool {
         justCorrected = false
+        var resynced = false
+        if let produced, let alternative = layouts.alternative,
+            let expected = layouts.current.character(for: stroke), expected != produced,
+            alternative.character(for: stroke) == produced
+        {
+            let previous = layouts.current
+            layouts = Layouts(current: alternative, alternative: previous)
+            // Earlier keys of this chunk were recorded with the same wrong assumption.
+            typed = typed.map { entry in
+                alternative.character(for: entry.stroke) == entry.character
+                    ? Typed(stroke: entry.stroke, character: entry.character, layoutID: alternative.id)
+                    : entry
+            }
+            resynced = true
+        }
         guard let character = produced ?? layouts.current.character(for: stroke) else {
             tainted = true
-            return
+            return resynced
         }
         if character.isWhitespace || character.isNewline {
             tainted = true
-            return
+            return resynced
         }
         typed.append(Typed(stroke: stroke, character: character, layoutID: layouts.current.id))
         if typed.count > 96 { tainted = true }
+        return resynced
+    }
+
+    /// A text-free description of the chunk being typed, for diagnostics.
+    package var chunkSummary: String {
+        let currentID = layouts.current.id
+        let mismatches = typed.filter { layouts.current.character(for: $0.stroke) != $0.character }.count
+        let uniform = typed.allSatisfy { $0.layoutID == currentID }
+        return "len=\(typed.count) uniform=\(uniform) mismatch=\(mismatches) tainted=\(tainted) "
+            + "unanchored=\(unanchored) early=\(earlyConverted) manual=\(manuallyConverted)"
     }
 
     /// Call after `character`: converts the chunk right away when it is clearly meant for the other

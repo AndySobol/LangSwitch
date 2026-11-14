@@ -450,7 +450,12 @@ final class InputEngine {
                 case .unknown: break
                 }
             }
-            session?.character(stroke, produced: produced)
+            if session?.character(stroke, produced: produced) == true, let current = session?.layouts.current
+            {
+                // The key typed what only the other layout explains: follow the keyboard, not the notice.
+                snapshot.currentID = current.id
+                diagnostics.layoutResyncs += 1
+            }
             counters.characters += 1
             diagnostics.keys += 1
             scheduleFlush()
@@ -466,6 +471,7 @@ final class InputEngine {
         guard var session else { return false }
         let typed = session.currentText
         let previous = session.previousWord
+        let summary = typed.isEmpty ? nil : session.chunkSummary
         if !typed.isEmpty {
             diagnostics.boundaries += 1
             if session.isTainted { diagnostics.taintedChunks += 1 }
@@ -476,6 +482,16 @@ final class InputEngine {
             tracing ? session.layouts.alternative?.render(keyCodes.map { KeyStroke(keyCode: $0) }) : nil
         let (output, result) = session.boundary(boundary, engine: runtime.engine)
         self.session = session
+        if let summary {
+            let layout = session.layouts.current.language.rawValue
+            let outcome: String
+            if case .replace(let replacement, _) = output {
+                outcome = "replace kinds=\(replacement.kinds.rawValue)"
+            } else {
+                outcome = "pass"
+            }
+            diagnostics.note("boundary layout=\(layout) \(summary) → \(outcome)")
+        }
         if tracing, !typed.isEmpty {
             diagnostics.trace =
                 "typed=\(typed) keys=\(keyCodes) alternative=\(alternative ?? "nil") result=\(result?.text ?? "nil") "
@@ -566,6 +582,7 @@ final class InputEngine {
         session = candidate
         hideCompletion()
         diagnostics.layoutConversions += 1
+        diagnostics.note("early len=\(replacement.deleteCount) → replace kinds=\(replacement.kinds.rawValue)")
         // The key that tipped the decision has not reached the application yet, so one character fewer
         // is on screen than the session has counted.
         injector.backspace(replacement.deleteCount - 1, proxy: proxy)

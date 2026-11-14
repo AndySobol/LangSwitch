@@ -51,8 +51,11 @@ final class TrainerModel {
         switch settings.trainerSource {
         case .words:
             text = content.randomWords(
-                language: language, count: max(40, settings.trainerDuration * 3), using: &generator)
-            limit = TimeInterval(settings.trainerDuration)
+                language: language,
+                count: settings.trainerDuration == 0 ? 150 : max(40, settings.trainerDuration * 3),
+                using: &generator)
+            // Zero means "no time limit": type until the text ends or Esc.
+            limit = settings.trainerDuration == 0 ? nil : TimeInterval(settings.trainerDuration)
         case .texts:
             if let passage = content.passage(
                 language: language, difficulty: settings.trainerDifficulty, excluding: recentPassages,
@@ -105,6 +108,15 @@ final class TrainerModel {
         now = Self.clock()
         phase = .running
         app.selectLayout(for: language)
+    }
+
+    /// Esc: an exercise with enough typed to be worth a result ends with the result screen.
+    func quit() {
+        if phase == .running, let session, session.position >= 15 {
+            finish()
+        } else {
+            stop()
+        }
     }
 
     func stop() {

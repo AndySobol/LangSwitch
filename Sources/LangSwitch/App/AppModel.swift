@@ -467,7 +467,11 @@ final class AppModel {
     private func verifyLayout(_ id: String) {
         Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(700))
-            guard let self, self.inputSources.snapshot.currentID != id else { return }
+            guard let self else { return }
+            // Ask the system itself rather than trusting what the last notification said.
+            self.inputSources.refresh()
+            self.layouts = self.inputSources.snapshot
+            guard self.inputSources.snapshot.currentID != id else { return }
             let snapshot = self.inputSources.snapshot
             let recent = self.inputSources.recent
             await self.engine.setLayouts(snapshot, recent: recent, byUser: false)

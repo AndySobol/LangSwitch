@@ -161,7 +161,9 @@ private struct TrainerSetup: View {
                         Text(loc("Время", "Time")).foregroundStyle(Theme.muted)
                         CapsulePicker(
                             selection: $app.settings.trainerDuration,
-                            options: [15, 30, 60, 120].map { ($0, loc("\($0) с", "\($0) s")) })
+                            options: [15, 30, 60, 120].map { ($0, loc("\($0) с", "\($0) s")) } + [
+                                (0, loc("Без времени", "No limit"))
+                            ])
                     } else if app.settings.trainerSource == .texts {
                         Text(loc("Сложность", "Difficulty")).foregroundStyle(Theme.muted)
                         CapsulePicker(
@@ -395,7 +397,7 @@ private struct TrainerStage: View {
             HStack(spacing: 14) {
                 HStack(spacing: 5) {
                     KeyCap(text: "esc")
-                    Text(loc("выйти", "quit")).foregroundStyle(Theme.muted)
+                    Text(loc("завершить", "finish")).foregroundStyle(Theme.muted)
                 }
                 HStack(spacing: 5) {
                     KeyCap(text: "⇥")
@@ -421,7 +423,7 @@ private struct TrainerStage: View {
         .focused($focused)
         .onKeyPress(phases: .down) { press in
             if press.key == .escape {
-                trainer.stop()
+                trainer.quit()
                 return .handled
             }
             if press.key == .tab {

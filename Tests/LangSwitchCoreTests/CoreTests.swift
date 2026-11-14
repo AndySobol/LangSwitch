@@ -146,6 +146,21 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
         #expect(simulator.document == "тесст тест ")
     }
 
+    @Test func sessionFollowsTheKeyboardWhenALayoutNoticeIsLost() {
+        // The system is on ABC but nobody told the session, which still believes Russian.
+        var simulator = TypingSimulator(engine: makeEngine(), active: .russian)
+        simulator.switchLayoutSilently(to: .abc)
+        simulator.press(keysFor: "привет мир ", on: .russian)
+        #expect(simulator.document == "привет мир ")
+        #expect(simulator.current.language == .russian)
+
+        // And the other way round: the session believes ABC, the system is on Russian.
+        simulator = TypingSimulator(engine: makeEngine(), active: .abc)
+        simulator.switchLayoutSilently(to: .russian)
+        simulator.press(keysFor: "hello ", on: .abc)
+        #expect(simulator.document == "hello ")
+    }
+
     @Test func manualLayoutSwitchInsideAWordDisablesCorrection() {
         var simulator = TypingSimulator(engine: makeEngine())
         simulator.press(keysFor: "при", on: .russian)

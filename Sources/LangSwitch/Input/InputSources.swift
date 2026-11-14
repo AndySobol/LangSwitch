@@ -134,8 +134,18 @@ final class InputSources {
     }
 
     func select(_ id: String) {
-        guard let source = sources[id], snapshot.currentID != id else { return }
+        // No check against the cached snapshot: it may lag behind a switch made a moment ago, and
+        // selecting the source that is already selected is harmless.
+        guard let source = sources[id] else { return }
         expectedID = id
         TISSelectInputSource(source)
+    }
+
+    /// Re-reads the state from the system, in case a change notification was missed.
+    func refresh() {
+        let previous = snapshot
+        reload()
+        expectedID = nil
+        if snapshot != previous { onChange?(snapshot, false) }
     }
 }

@@ -96,6 +96,11 @@ package struct TypingSimulator {
         _ = apply(.replace(replacement, swallowKey: true))
     }
 
+    /// The system layout changes without the session being told (a lost or late notification).
+    package mutating func switchLayoutSilently(to layout: KeyboardLayout) {
+        current = layout
+    }
+
     /// The user switches the layout by hand.
     package mutating func switchLayout(to layout: KeyboardLayout) {
         current = layout
