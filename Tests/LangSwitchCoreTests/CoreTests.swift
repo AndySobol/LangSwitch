@@ -530,6 +530,26 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
         #expect(engine.complete(prefix: "приве", language: .russian) == nil)
     }
 
+    @Test func unsuitableWordsAreOfferedOnlyToTheirOwner() {
+        let engine = CompletionEngine(
+            frequency: [.russian: FrequencyList(words: ["проект"], extended: ["проклятье"])],
+            unsuitable: [.russian: ["проклятье"]])
+        #expect(engine.complete(prefix: "прок", language: .russian) == nil)
+        var learning = LearningData()
+        learning.addWord("проклятье")
+        #expect(engine.complete(prefix: "прок", language: .russian, learning: learning)?.word == "проклятье")
+    }
+
+    @Test func nothingIsShownWhenTwoWordsAreEquallyLikely() {
+        let engine = CompletionEngine(frequency: [
+            .russian: FrequencyList(words: ["проверка", "проверить", "провод"])
+        ])
+        // Three words share the prefix and none of them is more likely than the other two together.
+        #expect(engine.complete(prefix: "про", language: .russian) == nil)
+        #expect(engine.complete(prefix: "провод", language: .russian) == nil)
+        #expect(engine.complete(prefix: "провери", language: .russian)?.word == "проверить")
+    }
+
     @Test func personalHistoryWins() {
         var learning = LearningData()
         for _ in 0..<6 { learning.recordWord("проверить", previous: "надо", known: true) }
@@ -620,5 +640,89 @@ private func check<T: Equatable>(_ value: T, _ expected: T, sourceLocation: Sour
         }
         #expect(resources.terms.count >= 500)
         #expect(resources.terms.term(for: "figma")?.canonical == "Figma")
+    }
+}
+
+@Suite struct UpdateTests {
+    @Test func versionsAreOrderedByNumbers() throws {
+        let old = try #require(AppVersion("1.2.0"))
+        #expect(try #require(AppVersion("v1.10.0")) > old)
+        #expect(try #require(AppVersion("1.2.1")) > old)
+        #expect(try #require(AppVersion("1.2")) == old)
+        #expect(try #require(AppVersion("1.2.0-beta.3")) == old)
+        #expect(try #require(AppVersion("2")) > old)
+        #expect(AppVersion("nightly") == nil)
+        #expect(AppVersion("") == nil)
+        #expect(old.description == "1.2.0")
+    }
+
+    private static let feed = #"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US">
+          <id>tag:github.com,2008:https://github.com/example/app/releases</id>
+          <link type="text/html" rel="alternate" href="https://github.com/example/app/releases"/>
+          <title>Release notes from app</title>
+          <entry>
+            <id>tag:github.com,2008:Repository/1/v1.3.0</id>
+            <link rel="alternate" type="text/html" href="https://github.com/example/app/releases/tag/v1.3.0"/>
+            <title>LangSwitch 1.3.0 beta</title>
+            <content type="html">&lt;p&gt;notes&lt;/p&gt;</content>
+          </entry>
+          <entry>
+            <id>tag:github.com,2008:Repository/1/v1.10.0</id>
+            <link rel="alternate" type="text/html" href="https://github.com/example/app/releases/tag/v1.10.0"/>
+            <title>LangSwitch 1.10.0</title>
+          </entry>
+          <entry>
+            <id>tag:github.com,2008:Repository/1/experiment</id>
+            <link rel="alternate" type="text/html" href="https://github.com/example/app/releases/tag/experiment"/>
+            <title>x</title>
+          </entry>
+          <entry>
+            <id>tag:github.com,2008:Repository/1/bad</id>
+            <link rel="alternate" type="text/html" href="https://github.com/example/app/releases/tag/v2.0/../../evil"/>
+            <title>path trick</title>
+          </entry>
+        </feed>
+        """#
+
+    @Test func releasesAreReadFromTheFeed() throws {
+        let releases = try ReleaseFeed.releases(fromAtom: Data(Self.feed.utf8), repository: "example/app")
+        // The tag that is not a version and the one that is not a plain tag are gone.
+        #expect(releases.map(\.version.description) == ["1.3.0", "1.10.0"])
+        #expect(releases[0].title == "LangSwitch 1.3.0 beta")
+        #expect(releases[0].page.absoluteString == "https://github.com/example/app/releases/tag/v1.3.0")
+        #expect(
+            releases[0].diskImage.absoluteString
+                == "https://github.com/example/app/releases/download/v1.3.0/LangSwitch-1.3.0.dmg")
+        #expect(
+            releases[0].checksums.absoluteString
+                == "https://github.com/example/app/releases/download/v1.3.0/SHA256SUMS.txt")
+        #expect(releases[0].diskImageName == "LangSwitch-1.3.0.dmg")
+
+        let current = try #require(AppVersion("1.2.0"))
+        #expect(
+            ReleaseFeed.updates(in: releases, newerThan: current).map(\.version.description) == [
+                "1.10.0", "1.3.0",
+            ])
+        #expect(ReleaseFeed.updates(in: releases, newerThan: try #require(AppVersion("1.3.0"))).count == 1)
+        #expect(ReleaseFeed.updates(in: releases, newerThan: try #require(AppVersion("2.0"))).isEmpty)
+    }
+
+    @Test func checksumIsReadFromTheList() {
+        let digest = String(repeating: "ab12", count: 16)
+        let list =
+            "\(digest)  LangSwitch-1.3.0.zip\n\(digest.uppercased()) *LangSwitch-1.3.0.dmg\nnot a line\n"
+        #expect(ReleaseFeed.checksum(for: "LangSwitch-1.3.0.dmg", in: list) == digest)
+        #expect(ReleaseFeed.checksum(for: "LangSwitch-1.3.0.zip", in: list) == digest)
+        #expect(ReleaseFeed.checksum(for: "Other.dmg", in: list) == nil)
+        #expect(ReleaseFeed.checksum(for: "LangSwitch-1.3.0.dmg", in: "short  LangSwitch-1.3.0.dmg") == nil)
+    }
+
+    @Test func aBrokenFeedIsAnError() {
+        #expect(throws: (any Error).self) {
+            try ReleaseFeed.releases(
+                fromAtom: Data("{\"message\": \"rate limit\"}".utf8), repository: "example/app")
+        }
     }
 }

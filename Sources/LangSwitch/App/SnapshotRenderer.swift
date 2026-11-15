@@ -71,8 +71,24 @@ enum SnapshotRenderer {
             trainer.stop()
         }
 
+        // The whole settings page with an update on offer, and the menu showing it.
+        let base = "https://github.com/\(UpdateSource.repository)/releases/"
+        if let version = AppVersion("9.9.0"), let page = URL(string: base + "tag/v9.9.0"),
+            let image = URL(string: base + "download/v9.9.0/LangSwitch-9.9.0.dmg"),
+            let sums = URL(string: base + "download/v9.9.0/SHA256SUMS.txt")
+        {
+            model.updater.showForPreview(
+                ReleaseInfo(
+                    version: version, title: "LangSwitch 9.9.0", page: page, diskImage: image, checksums: sums
+                ))
+        }
+        model.selection = .settings
         await render(
-            MenuPanel(close: {}).environment(model), size: CGSize(width: 320, height: 420),
+            RootView().environment(model), size: CGSize(width: 1040, height: 2300),
+            to: folder.appendingPathComponent("settings-full.png"), dark: true)
+
+        await render(
+            MenuPanel(close: {}).environment(model), size: CGSize(width: 320, height: 460),
             to: folder.appendingPathComponent("menu.png"), dark: true)
 
         // Floating pieces on a neutral background.

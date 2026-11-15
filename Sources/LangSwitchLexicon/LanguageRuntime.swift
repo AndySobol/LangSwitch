@@ -71,10 +71,16 @@ package final class LanguageRuntime {
             policy: resources.policy)
         self.engine = engine
         self.fixer = TextFixer(engine: engine)
-        // Completions are drawn from the curated core: the extension also holds names and rough words.
+        // Words the dictionary does not know are listed so that they are left alone, not so that they
+        // are offered: they are mostly names and rough words.
+        var unsuitable: [Language: Set<String>] = [:]
+        for (language, list) in resources.frequency {
+            unsuitable[language] = Set(
+                list.words.dropFirst(list.coreCount).filter { !dictionary.contains($0, language: language) })
+        }
         self.completion = CompletionEngine(
-            frequency: resources.frequency.mapValues { FrequencyList(words: Array($0.core)) },
-            terms: resources.terms)
+            frequency: resources.frequency, terms: resources.terms, context: resources.context,
+            unsuitable: unsuitable)
 
         let tagger = self.tagger
         let morphology = Morphology(

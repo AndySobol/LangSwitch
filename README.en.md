@@ -27,7 +27,8 @@ except `Figma`, which only gets its capital letter.
 | **Layout** | Decides the language from dictionaries, word frequencies and letter statistics. Leaves `git`, `GitLab`, `gmail`, links, e-mail addresses, `camelCase` and code untouched. |
 | **Spelling** | An error model instead of a word list: slips of the hands (swapped, missing, doubled letters) and the spelling rules of each language — Russian soft sign, vowels after hushing sounds, paired consonants, silent letters, prefixes, joined/separate/hyphenated words; English double consonants, unstressed vowels, silent e, apostrophes. `recieve` → `receive`, `definately` → `definitely`, `dont` → `don't`. The previous word is taken into account; the frequency lists hold 124,000 Russian and 43,000 English forms. Unknown words you keep using — names, slang, project names — are watched and join your dictionary once they come back on another day; every one can be added at once, removed or banned. |
 | **Punctuation** | Commas before Russian conjunctions, a space after a comma, sentence capitals, proper names, `HEllo` → `Hello`. |
-| **Autocomplete** | Grey ghost text after the caret, accepted with <kbd>Tab</kbd>. Learns your own vocabulary. |
+| **Autocomplete** | Grey ghost text after the caret, accepted with <kbd>Tab</kbd>. Uses the previous word and your own vocabulary; stays quiet when unsure. |
+| **Updates** | Finds a new version by itself, downloads, verifies and installs it. |
 | **Alternatives** | Double-click a word in any field for spellings, word forms and synonyms. |
 | **Trainer** | Touch typing as a game: speed, streaks, levels, records — and drills built from your own mistakes. |
 | **Notch** | A brief "before → after" hint grows out of the MacBook notch. |
@@ -64,7 +65,8 @@ Every shortcut and every kind of correction can be changed or switched off in Se
 
 ## Privacy
 
-LangSwitch has to see key presses to do its job, so: it is fully offline (there is no networking code),
+LangSwitch has to see key presses to do its job, so: your typing never leaves the Mac (the only network
+access is the update check against this project's releases page, which can be switched off),
 it cannot see passwords (macOS secure input hides them from every application), it keeps only the current
 word and a few previous ones in memory, and it writes only counters and your personal dictionary to disk.
 Phrase collection for the trainer is off by default. See [docs/PRIVACY.md](docs/PRIVACY.md) (in Russian).

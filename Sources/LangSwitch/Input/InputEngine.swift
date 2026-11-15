@@ -684,7 +684,8 @@ final class InputEngine {
 
     private func suggestNextWord(boundary: Boundary, runtime: LanguageRuntime) {
         guard config.completion, config.enabled, boundary == .space, let previous = session?.previousWord,
-            let next = runtime.completion.nextWord(after: previous, learning: learning)
+            let next = runtime.completion.nextWord(
+                after: previous, learning: learning, language: session?.language)
         else { return }
         completion = CompletionEngine.Suggestion(word: next, remainder: next)
         emit(.completion(next))

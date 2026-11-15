@@ -68,6 +68,8 @@ final class AppModel {
     @ObservationIgnored let hud = NotchHUD()
     @ObservationIgnored let ghost = CompletionOverlay()
     @ObservationIgnored let popup = SuggestionPopup()
+    /// Observable on its own: the settings screen and the menu read its state.
+    @ObservationIgnored let updater = Updater()
     @ObservationIgnored private var saveScheduled = false
     @ObservationIgnored private var trustPolling: Task<Void, Never>?
     @ObservationIgnored private var completionRequest = 0
@@ -124,6 +126,20 @@ final class AppModel {
             }
         }
         phrases.prune(olderThan: settings.phraseRetentionDays)
+        // The snapshot renderer runs the same start-up; it must not go to the network.
+        if persistsSettings {
+            updater.willRelaunch = { [weak self] in await self?.flushAndSave() }
+            updater.onUpdateFound = { [weak self] release in
+                guard let self, self.settings.showsHUD else { return }
+                self.hud.show(
+                    .message(
+                        symbol: "arrow.down.circle.fill",
+                        text: loc(
+                            "Доступна версия \(release.version)", "Version \(release.version) is available")),
+                    duration: 3)
+            }
+            updater.startAutomaticChecks { [weak self] in self?.settings.checksForUpdates ?? false }
+        }
 
         let learning = learning
         let config = settings.engineConfig

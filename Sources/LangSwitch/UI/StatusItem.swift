@@ -111,6 +111,21 @@ struct MenuPanel: View {
                 .buttonStyle(.primary)
             }
 
+            if let release = model.updater.release {
+                Button {
+                    model.selection = .settings
+                    model.openMainWindow?()
+                    close()
+                } label: {
+                    Label(
+                        loc("Доступна версия \(release.version)", "Version \(release.version) is available"),
+                        systemImage: "arrow.down.circle.fill"
+                    )
+                    .font(.caption)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
             HStack(spacing: 8) {
                 tile(loc("Слов", "Words"), model.statistics.today.words, Theme.ink)
                 tile(loc("Раскладка", "Layout"), model.statistics.today.layoutFixes, Theme.ink)

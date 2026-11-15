@@ -37,6 +37,85 @@ struct SettingsView: View {
         }
     }
 
+    /// Version, check, download and install.
+    @ViewBuilder private var updates: some View {
+        @Bindable var model = model
+        let updater = model.updater
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader(title: loc("Обновления", "Updates"), symbol: "arrow.down.circle")
+            SettingRow(
+                title: loc("Версия \(updater.current)", "Version \(updater.current)"), detail: updateStatus
+            ) {
+                if updater.isBusy {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Button(loc("Проверить сейчас", "Check now")) {
+                        Task { await updater.check(userInitiated: true) }
+                    }
+                }
+            }
+            if let release = updater.release {
+                SettingRow(
+                    title: loc(
+                        "Доступна версия \(release.version)", "Version \(release.version) is available"),
+                    detail: loc(
+                        "Программа скачает образ, сверит контрольную сумму и подпись, заменит себя и запустится заново. Сборка не подписана сертификатом разработчика, поэтому macOS может заново попросить разрешение «Универсальный доступ».",
+                        "The application downloads the image, checks its checksum and signature, replaces itself and starts again. The build has no developer certificate, so macOS may ask for Accessibility access again."
+                    )
+                ) {
+                    HStack(spacing: 8) {
+                        Button(loc("Что нового", "What’s new")) {
+                            if UpdateSource.isReleasePage(release.page) {
+                                NSWorkspace.shared.open(release.page)
+                            }
+                        }
+                        if case .manual(_, let image) = updater.state {
+                            Button(loc("Открыть образ", "Open the image")) { NSWorkspace.shared.open(image) }
+                                .buttonStyle(.primary)
+                        } else {
+                            Button(loc("Скачать и установить", "Download and install")) {
+                                Task { await updater.install() }
+                            }
+                            .buttonStyle(.primary)
+                            .disabled(updater.isBusy)
+                        }
+                    }
+                }
+            }
+            SettingRow(
+                title: loc("Проверять автоматически", "Check automatically"),
+                detail: loc(
+                    "Раз в сутки программа спрашивает у GitHub номер последней версии LangSwitch. В запросе нет ничего о вас и вашем наборе.",
+                    "Once a day the application asks GitHub for the latest LangSwitch version. The request says nothing about you or your typing."
+                )
+            ) { Toggle("", isOn: $model.settings.checksForUpdates).labelsHidden() }
+        }
+        .toggleStyle(.mono)
+        .card()
+    }
+
+    private var updateStatus: String {
+        let updater = model.updater
+        switch updater.state {
+        case .idle:
+            guard let last = updater.lastCheck else { return loc("Ещё не проверялось.", "Not checked yet.") }
+            return loc("Последняя проверка: ", "Last checked: ")
+                + last.formatted(date: .abbreviated, time: .shortened)
+        case .checking: return loc("Проверяю…", "Checking…")
+        case .upToDate: return loc("У вас последняя версия.", "You have the latest version.")
+        case .available: return loc("Есть обновление.", "An update is available.")
+        case .downloading: return loc("Скачиваю…", "Downloading…")
+        case .installing:
+            return loc("Устанавливаю, программа перезапустится…", "Installing; the application will restart…")
+        case .manual:
+            return loc(
+                "Образ скачан и проверен, но заменить программу на месте не удалось. Перетащите LangSwitch из открывшегося образа в «Программы».",
+                "The image is downloaded and verified, but the application could not be replaced in place. Drag LangSwitch from the opened image to Applications."
+            )
+        case .failed(let message): return message
+        }
+    }
+
     var body: some View {
         @Bindable var model = model
         Page(title: loc("Настройки", "Settings")) {
@@ -70,8 +149,9 @@ struct SettingsView: View {
                     SettingRow(
                         title: loc("Орфография", "Spelling"),
                         detail: loc(
-                            "Переставленные, пропущенные и лишние буквы, частые ошибки.",
-                            "Swapped, missing and doubled letters, common misspellings.")
+                            "Промахи рук и ошибки по правилам языка: «првиет», «любиш», «вобщем». Учитывает предыдущее слово.",
+                            "Slips of the hand and spelling mistakes: “teh”, “definately”, “dont”. The previous word counts."
+                        )
                     ) { Toggle("", isOn: $model.settings.fixesSpelling).labelsHidden() }
                     SettingRow(
                         title: loc("Пунктуация", "Punctuation"),
@@ -219,6 +299,8 @@ struct SettingsView: View {
                 Text(loc("Это действие нельзя отменить.", "This cannot be undone."))
             }
 
+            updates
+
             VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: loc("Система", "System"), symbol: "macwindow")
                 SettingRow(title: loc("Запускать при входе", "Launch at login")) {
@@ -260,8 +342,8 @@ struct SettingsView: View {
             Text(
                 "LangSwitch \(version) · "
                     + loc(
-                        "работает офлайн, ничего не отправляет в сеть",
-                        "works offline and sends nothing over the network")
+                        "ваш набор не покидает этот Mac; в сеть программа ходит только за обновлениями",
+                        "your typing never leaves this Mac; the network is used for updates only")
             )
             .font(.caption)
             .foregroundStyle(Theme.muted)

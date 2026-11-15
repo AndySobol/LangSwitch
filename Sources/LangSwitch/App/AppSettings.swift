@@ -48,6 +48,8 @@ struct AppSettings: Codable, Sendable, Equatable {
     var phraseRetentionDays = 7
 
     var showsHUD = true
+    /// Ask the releases page for a newer version once a day.
+    var checksForUpdates = true
     var interfaceLanguage = InterfaceLanguage.system
     var onboardingCompleted = false
 
@@ -94,6 +96,7 @@ struct AppSettings: Codable, Sendable, Equatable {
         collectsPhrases = value(.collectsPhrases, defaults.collectsPhrases)
         phraseRetentionDays = value(.phraseRetentionDays, defaults.phraseRetentionDays)
         showsHUD = value(.showsHUD, defaults.showsHUD)
+        checksForUpdates = value(.checksForUpdates, defaults.checksForUpdates)
         interfaceLanguage = value(.interfaceLanguage, defaults.interfaceLanguage)
         onboardingCompleted = value(.onboardingCompleted, defaults.onboardingCompleted)
         trainerLanguage = value(.trainerLanguage, defaults.trainerLanguage)
